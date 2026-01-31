@@ -1,0 +1,66 @@
+
+import { createRoot } from 'react-dom/client'
+import { createBrowserRouter, RouterProvider } from "react-router";
+
+import './index.css'
+import App from './App';
+import "leaflet/dist/leaflet.css";
+import GuestLayout from './layouts/GuestLayout';
+import UserLayout from './layouts/UserLayout';
+import AdminLayout from './layouts/AdminLayout';
+import Home from './pages/public/Home';
+import Login from './pages/public/Login';
+import { Register } from './pages/public/Register';
+import ProtectedRoute from './Routes/ProtectedRoute';
+import AdminRoute from './Routes/AdminRoute';
+import FindRide from './pages/user/FindRide';
+import PublishRide from './pages/user/PublishRide';
+import MyRides from './pages/user/MyRides';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AuthInitializer from './Components/AuthInitializer';
+
+
+const router = createBrowserRouter([
+
+  {
+    element: <GuestLayout />,
+    children: [
+      { path: "/", element: <Home /> },
+
+    ],
+  },
+  {
+    element: <ProtectedRoute />,
+    children: [
+      {
+        element: <UserLayout />,
+        children: [
+          { path: "/findaRide", element: <FindRide /> },
+          { path: "/publishaRide", element: <PublishRide /> },
+          { path: "/myRide", element: <MyRides /> },
+        ],
+      },
+    ],
+  },
+  {
+    element: <AdminRoute />,
+    children: [
+      {
+        element: <AdminLayout />,
+        children: [
+          { path: "/admin", element: <AdminDashboard /> },
+        ],
+      },
+    ],
+  },
+
+  { path: "/login", element: <Login /> },
+  { path: "/register", element: <Register /> },
+
+])
+
+createRoot(document.getElementById('root')).render(
+  <AuthInitializer>
+    <RouterProvider router={router} />
+  </AuthInitializer>
+)
