@@ -10,12 +10,11 @@ import {
 } from "@/Components/ui/card"
 import { Input } from "@/Components/ui/input"
 import { Label } from "@/Components/ui/label"
-import AppwriteAccount from "@/appwrite/AccountServices"
-import { createUserDetailes } from "@/utils/userDetailesTableOps"
-
+import { useRegister } from "@/api's/user/user.query"
 
 import { useState } from "react"
 import { useNavigate } from "react-router"
+import { toast } from "sonner"
 
 
 export function Register() {
@@ -28,33 +27,32 @@ export function Register() {
 
   const navigate = useNavigate();
 
-  const appWriteAccount = new AppwriteAccount()
+
+
+  const { mutateAsync, isPending } = useRegister();
+
 
 
   async function handleRegister() {
-    console.log(email, password, Name);
+    try {
+      await mutateAsync({
+        name: Name,
+        fullName,
+        email,
+        phoneNumber,
+        password,
+      });
 
-    const result = await appWriteAccount.createAppwriteAccount( email, Name, password)
+      navigate('/login')
 
-    console.log("result :- ",result)
-    
-    const dbResult = await createUserDetailes({
-
-      $id: result.$id,
-      Name,
-      fullName,
-      email,
-      phoneNumber
-    })
-
-    console.log("db result :- ",dbResult)
-    if (dbResult.success === false) {
-      alert("Database save failed...")
-      result
+    } catch (error) {
+      toast.error("Registration failed ❌", {
+        description:
+          error.response?.data?.message || "Something went wrong",
+      });
     }
-
-    navigate('/login')
   }
+
 
 
   return (
@@ -128,9 +126,15 @@ export function Register() {
             </form>
           </CardContent>
           <CardFooter className="flex-col gap-2">
-            <Button type="button" className="w-full" onClick={handleRegister}>
-              Register
+            <Button
+              type="button"
+              className="w-full"
+              onClick={handleRegister}
+              disabled={isPending}
+            >
+              {isPending ? "Registering..." : "Register"}
             </Button>
+
             <Button variant="outline" className="w-full">
               Login with Google
             </Button>

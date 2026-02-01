@@ -15,6 +15,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "@/store/authStore";
 import { getUserByAuthId } from "@/utils/userDetailesTableOps";
+import { useLogin } from "@/api's/user/user.query";
+import { toast } from "sonner";
+
 
 
 function Login() {
@@ -24,48 +27,43 @@ function Login() {
   const navigate = useNavigate();
   const appwriteAccount = new AppwriteAccount();
 
+  const { mutateAsync, isPending } = useLogin();
+
+
   function handleNavigateToRegisterPage() {
     navigate("/register");
   }
 
   async function handleLogInUser() {
     if (!email || !password) {
-      alert("Email and password are required");
+      toast.warning("Email and password are required");
       return;
     }
 
     try {
-      const result = await appwriteAccount.createAppwriteLogin(email, password);
+      const data = await mutateAsync({
+        email,
+        password,
+      });
+
+      // Zustand auth store
+      useAuthStore.getState().setCurrentUser(data.user);
+
       
-      console.log(result, "anand");
-      const authUser = await appwriteAccount.getAppwriteUser();
-      console.log("zustand store ", authUser);
-      useAuthStore.getState().setCurrentUser(authUser);
-      const profile = await getUserByAuthId(authUser.$id);
-      console.log("profile", profile);
 
-
-      if (!profile) {
-        alert("User profile not found");
-        return;
-      }
-      if (profile.role === "admin") {
-        console.log("admin");  
-        navigate('/admin');
-        return ''
+      if (data.user.role === "admin") {
+        navigate("/admin");
       } else {
-        console.log("user dashboard");
-        
         navigate("/findaRide", { replace: true });
-        return ''
       }
-
     } catch (error) {
-      console.error("Login error:", error);
-      alert("Login failed");
+      toast.error("Login failed ❌", {
+        description:
+          error.response?.data?.message || "Invalid email or password",
+      });
     }
-
   }
+
 
   return (
     <div className="h-screen w-screen flex items-center justify-center">
@@ -110,9 +108,10 @@ function Login() {
         </CardContent>
 
         <CardFooter className="flex-col gap-2">
-          <Button onClick={handleLogInUser} className="w-full">
-            Login
+          <Button onClick={handleLogInUser} className="w-full" disabled={isPending}>
+            {isPending ? "Logging in..." : "Login"}
           </Button>
+
           <Button variant="outline" className="w-full">
             Login with Google
           </Button>

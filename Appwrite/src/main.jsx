@@ -19,6 +19,7 @@ import PublishRide from './pages/user/PublishRide';
 import MyRides from './pages/user/MyRides';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AuthInitializer from './Components/AuthInitializer';
+import { Toaster } from 'sonner';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -73,6 +74,7 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')).render(
   <QueryClientProvider client={queryClient}>
+    <Toaster richColors position="top-right" />
     <AuthInitializer>
       <RouterProvider router={router} />
     </AuthInitializer>

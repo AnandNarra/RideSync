@@ -78,6 +78,7 @@ const login = async (req, res) => {
     }
 
     const token = generateWebToken(user._id)
+     user.password = undefined;
 
     return res.status(201).json({
       success: true,
