@@ -51,6 +51,7 @@ Appwrite/node_modules/
 Appwrite/dist/
 Appwrite/.env
 Appwrite/.env.local
+Appwrite/package-lock.json/
 
 # MongoDB
 *.db
