@@ -1,4 +1,4 @@
-import { Outlet } from "react-router";
+import { Link, Outlet } from "react-router";
 
 const AdminLayout = () => {
   return (
@@ -6,8 +6,12 @@ const AdminLayout = () => {
       <aside className="w-64 bg-gray-900 text-white p-6">
         <h2 className="text-xl font-bold">Admin Panel</h2>
         <ul className="mt-6 space-y-3">
-          <li className="hover:text-gray-300 cursor-pointer">Dashboard</li>
-          <li className="hover:text-gray-300 cursor-pointer">Driver Requests</li>
+          <li>
+            <Link to="/admin" className="hover:text-gray-300 cursor-pointer">Dashboard</Link>
+          </li>
+          <li>
+            <Link to="/admin/driver-request" className="hover:text-gray-300 cursor-pointer">Driver Requests</Link>
+          </li>
         </ul>
       </aside>
 

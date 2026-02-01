@@ -2,7 +2,7 @@ import { Navigate, Outlet } from "react-router";
 import useAuthStore from "../store/authStore";
 
 const AdminRoute = () => {
-  const { currentUser, userProfile, isCheckingUser } = useAuthStore();
+  const { currentUser, isCheckingUser } = useAuthStore();
 
   if (isCheckingUser) {
     return <div className="h-screen flex items-center justify-center">Loading...</div>;
@@ -12,7 +12,7 @@ const AdminRoute = () => {
     return <Navigate to="/login" replace />;
   }
 
-  if (userProfile?.role !== "admin") {
+  if (currentUser?.role !== "admin") {
     return <Navigate to="/" replace />;
   }
 

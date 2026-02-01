@@ -1,7 +1,5 @@
 import { useEffect } from "react";
 import useAuthStore from "../store/authStore";
-import AppwriteAccount from "../appwrite/AccountServices";
-import { getUserByAuthId } from "@/utils/userDetailesTableOps";
 
 const AuthInitializer = ({ children }) => {
   const {
@@ -10,31 +8,31 @@ const AuthInitializer = ({ children }) => {
     setIsCheckingUser
   } = useAuthStore();
 
-  const appwriteAccount = new AppwriteAccount();
-
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const authUser = await appwriteAccount.getAppwriteUser();
+        // Check if user is logged in via localStorage
+        const token = localStorage.getItem("token");
+        const userStr = localStorage.getItem("user");
 
-        
-        if (!authUser) {
+        if (!token || !userStr) {
           setCurrentUser(null);
           setUserProfile(null);
           return;
         }
 
-       
-        setCurrentUser(authUser);
-
-      
-        const profile = await getUserByAuthId(authUser.$id);
-        setUserProfile(profile);
+        // Parse and set user from localStorage
+        const user = JSON.parse(userStr);
+        setCurrentUser(user);
+        setUserProfile(user);
 
       } catch (error) {
         console.error("Auth init error:", error);
         setCurrentUser(null);
         setUserProfile(null);
+        // Clear invalid data
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
       } finally {
         setIsCheckingUser(false);
       }

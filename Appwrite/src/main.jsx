@@ -18,6 +18,7 @@ import FindRide from './pages/user/FindRide';
 import PublishRide from './pages/user/PublishRide';
 import MyRides from './pages/user/MyRides';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import DriverRequest from './pages/admin/DriverRequest';
 import AuthInitializer from './Components/AuthInitializer';
 import { Toaster } from 'sonner';
 
@@ -62,6 +63,7 @@ const router = createBrowserRouter([
         element: <AdminLayout />,
         children: [
           { path: "/admin", element: <AdminDashboard /> },
+          { path: "/admin/driver-request", element: <DriverRequest /> },
         ],
       },
     ],

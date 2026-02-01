@@ -10,11 +10,9 @@ import {
 } from "@/Components/ui/card";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
-import AppwriteAccount from "@/appwrite/AccountServices";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "@/store/authStore";
-import { getUserByAuthId } from "@/utils/userDetailesTableOps";
 import { useLogin } from "@/api's/user/user.query";
 import { toast } from "sonner";
 
@@ -25,9 +23,10 @@ function Login() {
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
-  const appwriteAccount = new AppwriteAccount();
-
   const { mutateAsync, isPending } = useLogin();
+
+  const setCurrentUser = useAuthStore((state) => state.setCurrentUser);
+
 
 
   function handleNavigateToRegisterPage() {
@@ -46,13 +45,12 @@ function Login() {
         password,
       });
 
-      // Zustand auth store
-      useAuthStore.getState().setCurrentUser(data.user);
+      // Update Zustand auth store
+      setCurrentUser(data.user);
 
-      
-
+      // Navigate based on user role
       if (data.user.role === "admin") {
-        navigate("/admin");
+        navigate("/admin", { replace: true });
       } else {
         navigate("/findaRide", { replace: true });
       }

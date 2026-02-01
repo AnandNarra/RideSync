@@ -17,6 +17,11 @@ const ProtectedRoute = () => {
     return <Navigate to="/login" replace />;
   }
 
+  // Redirect admin users to admin dashboard
+  if (currentUser?.role === "admin") {
+    return <Navigate to="/admin" replace />;
+  }
+
   return <Outlet />;
 };
 
