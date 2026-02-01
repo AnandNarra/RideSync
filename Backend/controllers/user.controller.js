@@ -78,7 +78,7 @@ const login = async (req, res) => {
     }
 
     const token = generateWebToken(user._id)
-     user.password = undefined;
+    user.password = undefined;
 
     return res.status(201).json({
       success: true,
@@ -128,7 +128,7 @@ const driverRequest = async (req, res) => {
 
 
     if (user.role === "driver") {
-      return re.status(404).json({
+      return res.status(404).json({
         message: "you already a driver..."
       })
     }
@@ -143,7 +143,7 @@ const driverRequest = async (req, res) => {
     }
 
 
-    let driverRequest = await Driver.findById(userId)
+    let driverRequest = await Driver.findOne({ userId })
 
     if (driverRequest) {
       if (driverRequest.status === "pending") {
@@ -167,10 +167,8 @@ const driverRequest = async (req, res) => {
         licenseNumber,
         vehicleModel,
         numberPlate,
-
+        status: "pending"
       })
-
-      driverRequest.status = "pending"
     }
 
     return res.status(201).json({
@@ -190,4 +188,36 @@ const driverRequest = async (req, res) => {
 };
 
 
-module.exports = { register, login, driverRequest }
+const getMyDriverStatus = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const driverRequest = await Driver.findOne({ userId });
+
+    if (!driverRequest) {
+      return res.status(200).json({
+        success: true,
+        data: { status: 'none' }
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        status: driverRequest.status,
+        rejectedReason: driverRequest.rejectedReason
+      }
+    });
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+
+module.exports = { register, login, driverRequest, getMyDriverStatus }

@@ -1,6 +1,6 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { loginUser, registerUser } from "./user.api";
+import { loginUser, registerUser, submitDriverRequest, getMyDriverStatus } from "./user.api";
 
 
 export const useRegister = () => {
@@ -40,6 +40,39 @@ export const useLogin = () => {
         description:
           error.response?.data?.message || "Invalid credentials",
       });
+    },
+  });
+};
+
+export const useSubmitDriverRequest = () => {
+  return useMutation({
+    mutationFn: submitDriverRequest,
+
+    onSuccess: (data) => {
+      toast.success("Driver request submitted successfully! 🚗", {
+        description: "Your request is pending admin approval",
+      });
+    },
+
+    onError: (error) => {
+      toast.error("Failed to submit driver request ❌", {
+        description:
+          error.response?.data?.message || "Something went wrong",
+      });
+    },
+  });
+};
+
+export const useGetMyDriverStatus = () => {
+  return useQuery({
+    queryKey: ["my-driver-status"],
+    queryFn: getMyDriverStatus,
+    retry: false,
+    // If endpoint doesn't exist (404), treat as no status
+    onError: (error) => {
+      if (error.response?.status === 404) {
+        return { data: { status: 'none' } };
+      }
     },
   });
 };
