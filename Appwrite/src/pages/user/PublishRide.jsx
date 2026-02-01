@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSubmitDriverRequest, useGetMyDriverStatus } from '../../api\'s/user/user.query';
 import { useQueryClient } from '@tanstack/react-query';
+import Map from '../../utils/Map';
+import LocationAutocomplete from '../../utils/LocationAutocomplete';
+import "leaflet/dist/leaflet.css";
 
 const PublishRide = () => {
 
@@ -8,9 +11,53 @@ const PublishRide = () => {
     const [vehicleModel, setVehicleModel] = useState("")
     const [numberPlate, setNumberPlate] = useState("")
 
+    // Ride publishing states
+    const [pickup, setPickup] = useState(null);
+    const [drop, setDrop] = useState(null);
+    const [routes, setRoutes] = useState([]);
+    const [selectedRouteIndex, setSelectedRouteIndex] = useState(0);
+    const [loading, setLoading] = useState(false);
+
+    const [rideDetails, setRideDetails] = useState({
+        date: "",
+        time: "",
+        seats: "",
+        price: ""
+    });
+
     const { mutate: submitRequest, isPending } = useSubmitDriverRequest();
     const { data: statusData, isLoading: isLoadingStatus } = useGetMyDriverStatus();
     const queryClient = useQueryClient();
+
+    const fetchRoutes = async () => {
+        if (!pickup || !drop) return;
+
+        setLoading(true);
+        try {
+            const accessToken = import.meta.env.VITE_MAPBOX_KEY;
+            const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${pickup.lng},${pickup.lat};${drop.lng},${drop.lat}?alternatives=true&geometries=geojson&steps=true&access_token=${accessToken}`;
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.routes && data.routes.length > 0) {
+                setRoutes(data.routes);
+                setSelectedRouteIndex(0);
+            }
+        } catch (error) {
+            console.error("Error fetching routes:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (pickup && drop) {
+            fetchRoutes();
+        } else {
+            setRoutes([]);
+        }
+    }, [pickup, drop]);
 
     const handleSumbit = (e) => {
         e.preventDefault();
@@ -33,6 +80,25 @@ const PublishRide = () => {
             }
         });
     }
+
+    const handlePublishRide = (e) => {
+        e.preventDefault();
+
+        if (!pickup || !drop || !rideDetails.date || !rideDetails.time || !rideDetails.seats || !rideDetails.price) {
+            alert("Please fill all fields");
+            return;
+        }
+
+        const rideData = {
+            pickup,
+            drop,
+            route: routes[selectedRouteIndex],
+            ...rideDetails
+        };
+
+        console.log("Publishing ride:", rideData);
+        // TODO: Call API to publish ride
+    };
 
     if (isLoadingStatus) {
         return (
@@ -126,24 +192,166 @@ const PublishRide = () => {
 
     if (driverStatus === 'approved') {
         return (
-            <div className="min-h-screen flex items-center justify-center p-4">
-                <div className="max-w-md w-full bg-green-50 border-2 border-green-200 p-8 rounded-2xl shadow-xl">
-                    <div className="text-center">
-                        <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-6">
+                <div className="max-w-7xl mx-auto">
+                    <div className="mb-6 ">
+                        <h1 className="text-3xl font-bold text-gray-900">Publish a Ride</h1>
+                        <p className="text-gray-600 mt-2">Share your journey and earn money!</p>
+                    </div>
+
+                    <div className="grid lg:grid-cols-2 gap-6">
+                        {/* Map Section */}
+                        <div className="bg-white rounded-2xl shadow-xl overflow-hidden h-[600px] relative z-0">
+                            <Map
+                                pickup={pickup}
+                                drop={drop}
+                                routes={routes}
+                                selectedRouteIndex={selectedRouteIndex}
+                                onRouteSelect={setSelectedRouteIndex}
+                            />
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-800 mb-3">Congratulations! 🎉</h2>
-                        <p className="text-gray-700 mb-4">
-                            The admin has approved your driver request.
-                        </p>
-                        <p className="text-gray-600 mb-6">
-                            You can now publish your rides and start earning!
-                        </p>
-                        <button className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition">
-                            Publish a Ride
-                        </button>
+
+                        {/* Form Section */}
+                        <div className="bg-white rounded-2xl shadow-xl p-6">
+                            <h2 className="text-xl font-bold text-gray-800 mb-4">Ride Details</h2>
+
+                            <form onSubmit={handlePublishRide} className="space-y-4">
+                                {/* Location Inputs */}
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Pickup Location
+                                    </label>
+                                    <LocationAutocomplete
+                                        placeholder="Enter pickup location"
+                                        onChange={setPickup}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Drop Location
+                                    </label>
+                                    <LocationAutocomplete
+                                        placeholder="Enter drop location"
+                                        onChange={setDrop}
+                                    />
+                                </div>
+
+                                {/* Route Selection */}
+                                {routes.length > 0 && (
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            Select Route
+                                        </label>
+                                        <select
+                                            value={selectedRouteIndex}
+                                            onChange={(e) => setSelectedRouteIndex(Number(e.target.value))}
+                                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        >
+                                            {routes.map((route, index) => {
+                                                const durationMinutes = Math.round(route.duration / 60);
+                                                const distanceKm = (route.distance / 1000).toFixed(1);
+                                                const hours = Math.floor(durationMinutes / 60);
+                                                const minutes = durationMinutes % 60;
+                                                const timeText = hours > 0 ? `${hours} hr ${minutes} min` : `${minutes} min`;
+
+                                                return (
+                                                    <option key={index} value={index}>
+                                                        Route {index + 1}: {timeText} - {distanceKm} km
+                                                    </option>
+                                                );
+                                            })}
+                                        </select>
+                                    </div>
+                                )}
+
+                                {/* Date and Time */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={rideDetails.date}
+                                            onChange={(e) => setRideDetails({ ...rideDetails, date: e.target.value })}
+                                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            Time
+                                        </label>
+                                        <input
+                                            type="time"
+                                            value={rideDetails.time}
+                                            onChange={(e) => setRideDetails({ ...rideDetails, time: e.target.value })}
+                                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Seats and Price */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            Available Seats
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            max="8"
+                                            value={rideDetails.seats}
+                                            onChange={(e) => setRideDetails({ ...rideDetails, seats: e.target.value })}
+                                            placeholder="e.g., 3"
+                                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            Price per Seat (₹)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            value={rideDetails.price}
+                                            onChange={(e) => setRideDetails({ ...rideDetails, price: e.target.value })}
+                                            placeholder="e.g., 200"
+                                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Route Info Display */}
+                                {routes.length > 0 && (
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                        <h3 className="text-sm font-semibold text-gray-700 mb-2">Route Summary</h3>
+                                        <div className="text-sm text-gray-600 space-y-1">
+                                            <p><strong>Distance:</strong> {(routes[selectedRouteIndex].distance / 1000).toFixed(1)} km</p>
+                                            <p><strong>Duration:</strong> {Math.round(routes[selectedRouteIndex].duration / 60)} minutes</p>
+                                            {rideDetails.price && rideDetails.seats && (
+                                                <p className="text-green-600 font-semibold mt-2">
+                                                    Total Earnings: ₹{rideDetails.price * rideDetails.seats}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Submit Button */}
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {loading ? "Loading..." : "Publish Ride"}
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
