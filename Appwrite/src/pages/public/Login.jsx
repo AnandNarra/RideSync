@@ -35,23 +35,13 @@ function Login() {
     }
 
     try {
-
-
       const result = await appwriteAccount.createAppwriteLogin(email, password);
-
-      console.log(result, "anand");
-
-      const authUser = await appwriteAccount.getAppwriteUser();
-
-      console.log("zustand store ", authUser);
-
-
-      useAuthStore.getState().setCurrentUser(authUser);
-
       
-
+      console.log(result, "anand");
+      const authUser = await appwriteAccount.getAppwriteUser();
+      console.log("zustand store ", authUser);
+      useAuthStore.getState().setCurrentUser(authUser);
       const profile = await getUserByAuthId(authUser.$id);
-
       console.log("profile", profile);
 
 
@@ -74,6 +64,7 @@ function Login() {
       console.error("Login error:", error);
       alert("Login failed");
     }
+
   }
 
   return (

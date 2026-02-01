@@ -100,39 +100,86 @@ const login = async (req, res) => {
 }
 
 
-const requestToAdmin = async (req, res) => {
-  try {
-    const { licenseNumber, vehicleModel, numberPlate, seats } = req.body;
+const driverRequest = async (req, res) => {
 
-    if (!licenseNumber || !vehicleModel || !numberPlate || !seats) {
+
+  try {
+    const { licenseNumber, vehicleModel, numberPlate } = req.body;
+
+    const userId = req.user.id;
+
+
+
+    if (!licenseNumber || !vehicleModel || !numberPlate) {
       return res.status(400).json({
         message: "Please fill all required fields",
         success: false,
       });
     }
 
-    const exitingDriver = await Driver.findOne({ licenseNumber });
+    const user = await User.findById(userId)
 
-    if (exitingDriver) {
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found"
+      })
+    }
+
+
+    if (user.role === "driver") {
+      return re.status(404).json({
+        message: "you already a driver..."
+      })
+    }
+
+    const existingLicense = await Driver.findOne({ licenseNumber });
+
+    if (existingLicense) {
       return res.status(409).json({
-        message: "Driver already exists with this license number",
         success: false,
+        message: "This license number is already registered",
       });
     }
 
-    await Driver.create({
-      licenseNumber,
-      vehicleModel,
-      numberPlate,
-      seats,
-    });
+
+    let driverRequest = await Driver.findById(userId)
+
+    if (driverRequest) {
+      if (driverRequest.status === "pending") {
+        return res.status(405).json({
+          message: "your request is already on pending...."
+        })
+      }
+
+
+
+      driverRequest.status = "pending",
+        driverRequest.licenseNumber = licenseNumber,
+        driverRequest.vehicleModel = vehicleModel,
+        driverRequest.numberPlate = numberPlate,
+        driverRequest.rejectedReason = null,
+        await driverRequest.save();
+    }
+    else {
+      driverRequest = await Driver.create({
+        userId,
+        licenseNumber,
+        vehicleModel,
+        numberPlate,
+
+      })
+
+      driverRequest.status = "pending"
+    }
 
     return res.status(201).json({
-      success: true,
-      message: "Request sent. Waiting for admin approval",
-    });
+      message: "submited the request to admin"
+    })
+
 
   } catch (error) {
+
+    console.log(error)
     return res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -142,4 +189,4 @@ const requestToAdmin = async (req, res) => {
 };
 
 
-module.exports = { register, login, requestToAdmin }
+module.exports = { register, login, driverRequest }

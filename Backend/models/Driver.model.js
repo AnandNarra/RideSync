@@ -21,24 +21,22 @@ const driverSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
+    rejectedReason:{
+      type:String,
+      default:null,
 
-    seats: {
-      type: Number,
-      required: true,
-      min: 1,
-    },
-
-    role: {
-      type: String,
-      enum: ["driver"],
-      default: "driver",
     },
 
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
-      default: "pending",
+      enum: ["none","pending", "approved", "rejected"],
+      default: "none",
     },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }
+
   },
   { timestamps: true }
 );

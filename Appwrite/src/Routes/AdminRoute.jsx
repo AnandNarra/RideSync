@@ -1,22 +1,22 @@
-import { Navigate, Outlet } from "react-router";
-import useAuthStore from "../store/authStore";
+// import { Navigate, Outlet } from "react-router";
+// import useAuthStore from "../store/authStore";
 
-const AdminRoute = () => {
-  const { currentUser, userProfile, isCheckingUser } = useAuthStore();
+// const AdminRoute = () => {
+//   const { currentUser, userProfile, isCheckingUser } = useAuthStore();
 
-  if (isCheckingUser) {
-    return <div className="h-screen flex items-center justify-center">Loading...</div>;
-  }
+//   if (isCheckingUser) {
+//     return <div className="h-screen flex items-center justify-center">Loading...</div>;
+//   }
 
-  if (!currentUser) {
-    return <Navigate to="/login" replace />;
-  }
+//   if (!currentUser) {
+//     return <Navigate to="/login" replace />;
+//   }
 
-  if (userProfile?.role !== "admin") {
-    return <Navigate to="/" replace />;
-  }
+//   if (userProfile?.role !== "admin") {
+//     return <Navigate to="/" replace />;
+//   }
 
-  return <Outlet />;
-};
+//   return <Outlet />;
+// };
 
-export default AdminRoute;
+// export default AdminRoute;
