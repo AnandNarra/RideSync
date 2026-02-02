@@ -194,7 +194,7 @@ const PublishRide = () => {
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-6">
                 <div className="max-w-7xl mx-auto">
-                    <div className="mb-6 ">
+                    <div className="mb-6 text-center">
                         <h1 className="text-3xl font-bold text-gray-900">Publish a Ride</h1>
                         <p className="text-gray-600 mt-2">Share your journey and earn money!</p>
                     </div>
