@@ -3,6 +3,7 @@ const generateWebToken = require('../utils/generateToken');
 const User = require('../models/User.model');
 const Driver = require('../models/Driver.model');
 const uploadOnCloudinary = require('../utils/cloudinary');
+const { cleanupUploadedFiles } = require('../utils/cleanupHelper');
 
 const register = async (req, res) => {
 
@@ -139,6 +140,7 @@ const driverRequest = async (req, res) => {
     const user = await User.findById(userId);
 
     if (!user) {
+      cleanupUploadedFiles(req);
       return res.status(404).json({
         success: false,
         message: "User not found",
@@ -147,19 +149,21 @@ const driverRequest = async (req, res) => {
 
     // 7. Check role
     if (user.role === "driver") {
+      cleanupUploadedFiles(req);
       return res.status(400).json({
         success: false,
         message: "You are already a driver",
       });
     }
 
-   
-    
+
+
     // 9. Find existing request
     let driverRequest = await Driver.findOne({ userId });
 
     // 10. Check pending request
     if (driverRequest && driverRequest.status === "pending") {
+      cleanupUploadedFiles(req);
       return res.status(409).json({
         success: false,
         message: "Your request is already pending",
@@ -173,6 +177,7 @@ const driverRequest = async (req, res) => {
     });
 
     if (existingDriver) {
+      cleanupUploadedFiles(req);
       return res.status(409).json({
         success: false,
         message:
@@ -180,12 +185,13 @@ const driverRequest = async (req, res) => {
       });
     }
 
-     // 8. Upload to Cloudinary
+    // 8. Upload to Cloudinary
 
     const licensePhoto = await uploadOnCloudinary(licensePhotoLocalPath);
     const aadhaarPhoto = await uploadOnCloudinary(aadhaarPhotoLocalPath);
 
     if (!licensePhoto || !aadhaarPhoto) {
+      cleanupUploadedFiles(req);
       return res.status(400).json({
         success: false,
         message: "Failed to upload images",
@@ -241,8 +247,6 @@ const driverRequest = async (req, res) => {
     });
   }
 };
-
-module.exports = driverRequest;
 
 
 
