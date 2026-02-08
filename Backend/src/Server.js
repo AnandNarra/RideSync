@@ -3,23 +3,37 @@ const connectDB = require("./config/db");
 
 const userRouter = require('./routes/auth.router.js')
 const adminRouter = require('./routes/admin.router.js')
+const cors = require('cors')
+const cookieParser = require('cookie-parser')
+
 require("dotenv").config();
 
 const app = express();
 
 // Middleware
 app.use(express.json());
+app.use(cookieParser());
 
-// CORS configuration
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
+const allowedOrigin =[
+  "http://localhost:5173",
+  "https://anand.vercel.app"
+];
+
+
+// CORS options
+
+const corsOptions = {
+  origin:(origin , callback) =>{
+    if(allowedOrigin.includes(origin) || !origin) {
+      callback(null , true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials : true,
+};
+
+app.use(cors(corsOptions));
 
 // Database connection
 connectDB();

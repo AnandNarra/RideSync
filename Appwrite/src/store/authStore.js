@@ -1,3 +1,4 @@
+import { setAccessToken } from "@/utils/tokens";
 import { create } from "zustand";
 
 const useAuthStore = create((set) => ({
@@ -15,6 +16,17 @@ const useAuthStore = create((set) => ({
     localStorage.removeItem("user");
     set({ currentUser: null, userProfile: null });
   },
+
+
+  user:null,
+  setUser: (userData) => (set({user:userData})),
+
+  accessToken : null,
+  setAccessToken : (AccessToken) =>(set(({accessToken:AccessToken})))
+
 }));
 
 export default useAuthStore;
+
+
+

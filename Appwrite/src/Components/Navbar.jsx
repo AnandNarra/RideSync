@@ -44,6 +44,10 @@ const handleLogOut = async () => {
             <li className="cursor-pointer hover:text-blue-600 transition" onClick={()=> navigate('/myRide')}>
               My Rides
             </li>
+
+            <li className="cursor-pointer hover:text-blue-600 transition" onClick={()=> navigate('/myProfile')}>
+              My-Profile
+            </li>
           </ul>
 
 {

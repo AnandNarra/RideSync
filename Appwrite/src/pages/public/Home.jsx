@@ -4,6 +4,8 @@ import Footer from "../../components/Footer";
 import "leaflet/dist/leaflet.css";
 import Map from "../../utils/Map";
 import LocationAutocomplete from "../../utils/LocationAutocomplete";
+import useAuthStore from "@/store/authStore";
+import axiosInstance from "@/api's/axiosInstance";
 
 function Home() {
   const [pickup, setPickup] = useState(null);
@@ -52,6 +54,25 @@ function Home() {
     e.preventDefault();
     console.log("Publishing ride:", { pickup, drop, ride });
   }
+
+  const setUser = useAuthStore((state) => (state.setUser))
+  const accessToken = useAuthStore((state) => state.accessToken)
+
+  async function getCurrentUser() {
+    try {
+      const response = await axiosInstance.get('/api/v1/my-profile');
+      setUser(response.data.user);
+
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  useEffect(() => {
+    if (!accessToken) return;
+
+    getCurrentUser();
+  }, [accessToken])
 
   return (
     <>

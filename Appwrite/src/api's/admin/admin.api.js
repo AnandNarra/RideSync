@@ -1,34 +1,23 @@
 import axios from "axios";
+import axiosInstance from "../axiosInstance";
 
-const URL = "http://localhost:5000";
+const URL = `${import.meta.env.VITE_API_BASE_URL}`;
+
 
 export const getAllDriverRequests = async () => {
-  const token = localStorage.getItem("token");
-  const response = await axios.get(`${URL}/api/v1/drivers`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await axiosInstance.get('/api/v1/drivers')
   return response.data;
-};
+}
+
 
 export const updateDriverRequestStatus = async ({ driverId, status, rejectedReason }) => {
-  const token = localStorage.getItem("token");
   const payload = { status };
   if (rejectedReason) {
     payload.rejectedReason = rejectedReason;
   }
 
-  const { data } = await axios.patch(
-    `${URL}/api/v1/drivers/${driverId}`,
-    payload,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  return data;
-};
+  const response = await axiosInstance.patch(`/api/v1/drivers/${driverId}`, payload)
+  return response.data
+}
 
 

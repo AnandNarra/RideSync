@@ -8,8 +8,10 @@ import "leaflet/dist/leaflet.css";
 const PublishRide = () => {
 
     const [licenseNumber, setLicenseNumber] = useState("")
-    const [vehicleModel, setVehicleModel] = useState("")
-    const [numberPlate, setNumberPlate] = useState("")
+    const [aadhaarNumber, setAadhaarNumber] = useState("")
+    const [experience, setExperience] = useState("")
+    const [licensePhoto, setLicensePhoto] = useState(null)
+    const [aadhaarPhoto, setAadhaarPhoto] = useState(null)
 
     // Ride publishing states
     const [pickup, setPickup] = useState(null);
@@ -62,18 +64,28 @@ const PublishRide = () => {
     const handleSumbit = (e) => {
         e.preventDefault();
 
-        const payload = {
-            licenseNumber,
-            vehicleModel,
-            numberPlate
-        };
+        const formData = new FormData();
+        formData.append("licenseNumber", licenseNumber);
+        formData.append("aadhaarNumber", aadhaarNumber);
+        formData.append("experience", experience);
+        if (licensePhoto) formData.append("licensePhoto", licensePhoto);
+        if (aadhaarPhoto) formData.append("aadhaarPhoto", aadhaarPhoto);
 
-        submitRequest(payload, {
+        // Debug: Log FormData contents
+        console.group("Driver Request Debug Data");
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}:`, value);
+        }
+        console.groupEnd();
+
+        submitRequest(formData, {
             onSuccess: () => {
                 // Reset form
                 setLicenseNumber("");
-                setVehicleModel("");
-                setNumberPlate("");
+                setAadhaarNumber("");
+                setExperience("");
+                setLicensePhoto(null);
+                setAadhaarPhoto(null);
 
                 // Refetch status
                 queryClient.invalidateQueries({ queryKey: ["my-driver-status"] });
@@ -135,24 +147,50 @@ const PublishRide = () => {
                         />
 
                         <input
-                            type="text"
-                            name="vehicleModel"
-                            placeholder="Vehicle Model"
-                            value={vehicleModel}
-                            onChange={(e) => setVehicleModel(e.target.value)}
+                            type="number"
+                            name="aadhaarNumber"
+                            placeholder="Aadhaar Number"
+                            value={aadhaarNumber}
+                            onChange={(e) => setAadhaarNumber(e.target.value)}
                             className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                             required
                         />
 
                         <input
-                            type="text"
-                            name="numberPlate"
-                            placeholder="Number Plate"
-                            value={numberPlate}
-                            onChange={(e) => setNumberPlate(e.target.value)}
+                            type="number"
+                            name="experience"
+                            placeholder="Experience (in years)"
+                            value={experience}
+                            onChange={(e) => setExperience(e.target.value)}
+                            min="0"
+                            max="40"
                             className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                             required
                         />
+
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">License Photo</label>
+                            <input
+                                type="file"
+                                name="licensePhoto"
+                                accept="image/*"
+                                onChange={(e) => setLicensePhoto(e.target.files[0])}
+                                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                required
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Aadhaar Photo</label>
+                            <input
+                                type="file"
+                                name="aadhaarPhoto"
+                                accept="image/*"
+                                onChange={(e) => setAadhaarPhoto(e.target.files[0])}
+                                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                required
+                            />
+                        </div>
 
                         <button
                             type="submit"

@@ -1,9 +1,11 @@
 const bcrypt = require('bcrypt');
-const generateWebToken = require('../utils/generateToken');
+const jwt = require('jsonwebtoken')
 const User = require('../models/User.model');
 const Driver = require('../models/Driver.model');
 const uploadOnCloudinary = require('../utils/cloudinary');
 const { cleanupUploadedFiles } = require('../utils/cleanupHelper');
+
+const { generateAccessToken, generateRefreshToken } = require('../utils/generateToken')
 
 const register = async (req, res) => {
 
@@ -27,15 +29,16 @@ const register = async (req, res) => {
       })
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     await User.create({
       name,
       fullName,
       email,
-      password: hashedPassword,
+      password,
       phoneNumber
     })
+
+    // const newUser = new User(req.body)
+    // await newUser.save()
 
     return res.status(201).json({
       message: "user register successfully..."
@@ -60,10 +63,10 @@ const login = async (req, res) => {
 
   try {
 
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email })
 
     if (!user) {
-      return res.status(401).json({
+      return res.status(409).json({
         success: false,
         message: "User does not exist. Please register first."
       })
@@ -72,20 +75,31 @@ const login = async (req, res) => {
     const isPasswordMatch = await bcrypt.compare(password, user.password)
 
     if (!isPasswordMatch) {
-      return res.status(401).json({
+      return res.status(409).json({
         success: false,
         message: "Invalid password"
       })
     }
 
-    const token = generateWebToken(user._id)
-    user.password = undefined;
+    const accessToken = generateAccessToken(user._id)
+
+    const refreshToken = generateRefreshToken(user._id)
+
+    user.refreshToken = refreshToken
+    await user.save()
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    })
+
 
     return res.status(201).json({
       success: true,
       message: "user login successfully...",
-      token,
-      user
+      accessToken,
+      user: { _id: user._id, role: user.role }
     })
 
   } catch (error) {
@@ -100,7 +114,6 @@ const login = async (req, res) => {
   }
 
 }
-
 
 const driverRequest = async (req, res) => {
   try {
@@ -248,8 +261,6 @@ const driverRequest = async (req, res) => {
   }
 };
 
-
-
 const getMyDriverStatus = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -282,4 +293,96 @@ const getMyDriverStatus = async (req, res) => {
 };
 
 
-module.exports = { register, login, driverRequest, getMyDriverStatus }
+const logout = async (req, res) => {
+
+  try {
+
+    const { userId } = req.user
+
+    await User.findByIdAndUpdate(userId, { refreshToken: null })
+
+    res.clearCookie('refreshToken')
+
+    res.status(200).json({
+      success: true,
+      message: "User logout successfully..."
+    })
+
+
+
+  } catch (error) {
+
+    console.error(error);
+    res.status(400).json({
+      error: true,
+      message: error.message
+    })
+
+
+
+
+  }
+}
+
+const refreshAccessToken = async (req, res) => {
+
+  try {
+
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      throw new Error("No refresh token found in cookies.")
+    }
+
+    const decodedRefreshToken = jwt.verify(refreshToken, process.env.JWT_REFRESHTOKEN_SECRET)
+    const userId = decodedRefreshToken.id;
+    const exitingUser = await User.findById(userId)
+
+    if (!exitingUser) {
+      throw new Error("User not found")
+    }
+
+    const newAccessToken = generateAccessToken(userId);
+
+    return res.status(200).json({
+      accessToken: newAccessToken
+    })
+
+
+  } catch (error) {
+
+    res.status(401).json({
+      message: error.message
+    })
+
+  }
+
+}
+
+const getMyProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const existingUser = await User.findById(userId);
+
+    if (!existingUser) {
+      throw new Error("User doesn't exits")
+    }
+
+    return res.status(200).json({
+      message: "Use found successfully...",
+      user:existingUser
+    })
+
+
+  } catch (error) {
+    console.log(error)
+    res.status(400).json({
+      error: true,
+      message: error.message
+    })
+  }
+
+}
+
+module.exports = { register, login, driverRequest, getMyDriverStatus, logout, refreshAccessToken, getMyProfile }

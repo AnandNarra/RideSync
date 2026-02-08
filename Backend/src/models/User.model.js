@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
 
+const bcrypt = require('bcrypt');
+
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -24,11 +27,15 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
 
+    refreshToken:{
+      type:String,
+      default:null
+
+    },
     password: {
       type: String,
       required: true,
-      minlength: 6,
-      select: false, // password will not be returned by default
+      minlength: 6
     },
 
     phoneNumber: {
@@ -46,5 +53,24 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+userSchema.pre("save", async function(){
+  if(!this.isModified("password")){
+    return ;
+  }
+  this.password = await bcrypt.hash(this.password ,10);
+})
+
+
+
+userSchema.methods.toJSON = function(){
+
+  
+  const user = this.toObject();
+  delete user.password;
+  delete user.refreshToken;
+
+  return user;
+}
 
 module.exports = mongoose.model("User", userSchema);

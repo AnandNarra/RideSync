@@ -1,17 +1,19 @@
 const express = require('express')
-const { register, login, driverRequest, getMyDriverStatus } = require('../controllers/user.controller')
+const { register, login, driverRequest, getMyDriverStatus, logout, getMyProfile, refreshAccessToken } = require('../controllers/user.controller')
 const validate = require('../middlewares/validate.middleware')
 const { registerSchema, loginSchema } = require('../validators/user.validator')
-const authMiddleware = require('../middlewares/auth.middleware')
 
 const upload = require('../middlewares/multer.middleware.js')
+const verifyAccessToken = require('../middlewares/auth.middleware')
 
 const router = express.Router()
+
+
 
 router.post('/register', validate(registerSchema), register)
 router.post('/login', validate(loginSchema), login)
 
-router.post('/driverRequest', authMiddleware, upload.fields([
+router.post('/driverRequest', verifyAccessToken, upload.fields([
     {
         name:"licensePhoto",
         maxCount:1
@@ -21,6 +23,15 @@ router.post('/driverRequest', authMiddleware, upload.fields([
         maxCount:1
     }
 ]) ,  driverRequest)
-router.get('/myDriverStatus', authMiddleware, getMyDriverStatus)
+
+
+router.get('/myDriverStatus', verifyAccessToken, getMyDriverStatus)
+
+router.post('/logout', verifyAccessToken , logout)
+
+router.get('/my-profile', verifyAccessToken , getMyProfile)
+
+router.get('/auth/token/refresh/', refreshAccessToken)
+
 
 module.exports = router

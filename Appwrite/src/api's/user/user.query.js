@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { loginUser, registerUser, submitDriverRequest, getMyDriverStatus } from "./user.api";
+import { setAccessToken } from "@/utils/tokens";
 
 
 export const useRegister = () => {
@@ -27,7 +28,7 @@ export const useLogin = () => {
     mutationFn: loginUser,
 
     onSuccess: (data) => {
-      localStorage.setItem("token", data.token);
+      setAccessToken(data.accessToken);
       localStorage.setItem("user", JSON.stringify(data.user));
 
       toast.success("Login successful 🚀", {
@@ -76,3 +77,5 @@ export const useGetMyDriverStatus = () => {
     },
   });
 };
+
+

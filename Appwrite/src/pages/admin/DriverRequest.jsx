@@ -83,9 +83,7 @@ function DriverRequests() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Phone Number
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Vehicle Details
-                  </th>
+                  
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Experience
                   </th>
@@ -118,19 +116,10 @@ function DriverRequests() {
                         {request.userId?.phoneNumber || 'N/A'}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <div className="text-sm text-gray-900">
-                          {request.vehicleModel || 'N/A'}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {request.numberPlate || 'N/A'}
-                        </div>
-                      </div>
-                    </td>
+                    
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">
-                        {request.__v || 0} years
+                        {request.experience || 0} years
                       </div>
                     </td>
                     <td className="px-6 py-4">
