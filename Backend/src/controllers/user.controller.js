@@ -99,7 +99,7 @@ const login = async (req, res) => {
       success: true,
       message: "user login successfully...",
       accessToken,
-      user: { _id: user._id, role: user.role }
+      user: { _id: user._id, role: user.role , name:user.name}
     })
 
   } catch (error) {
