@@ -3,7 +3,7 @@ import useAuthStore from "../store/authStore";
 
 
 const ProtectedRoute = () => {
-  const { currentUser, isCheckingUser } = useAuthStore();
+  const { user, isCheckingUser } = useAuthStore();
 
   if (isCheckingUser) {
     return (
@@ -13,12 +13,12 @@ const ProtectedRoute = () => {
     );
   }
 
-  if (!currentUser) {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
   // Redirect admin users to admin dashboard
-  if (currentUser?.role === "admin") {
+  if (user?.role === "admin") {
     return <Navigate to="/admin" replace />;
   }
 

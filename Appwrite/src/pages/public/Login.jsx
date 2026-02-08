@@ -25,13 +25,9 @@ function Login() {
 
   const navigate = useNavigate();
   const { mutateAsync, isPending } = useLogin();
-  
 
-  const setCurrentUser = useAuthStore((state) => state.setCurrentUser);
-
-  const setaccessToken = useAuthStore((state) => state.setAccessToken)
-
-
+  const setUser = useAuthStore((state) => state.setUser);
+  const setStoreAccessToken = useAuthStore((state) => state.setAccessToken);
 
   function handleNavigateToRegisterPage() {
     navigate("/register");
@@ -50,9 +46,11 @@ function Login() {
       });
 
       // Update Zustand auth store
-      setCurrentUser(data.user);
-      setaccessToken(data.accessToken)
-      setAccessToken(data.accessToken)
+      setUser(data.user);
+      setStoreAccessToken(data.accessToken);
+      setAccessToken(data.accessToken); // Also save to localStorage
+
+      console.log(data.user)
 
       // Navigate based on user role
       if (data.user.role === "admin") {

@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { loginUser, registerUser, submitDriverRequest, getMyDriverStatus } from "./user.api";
+import { loginUser, registerUser, submitDriverRequest, getMyDriverStatus, logout } from "./user.api";
 import { setAccessToken } from "@/utils/tokens";
 
 
@@ -78,4 +78,8 @@ export const useGetMyDriverStatus = () => {
   });
 };
 
-
+export const useLogout = () => {
+  return useMutation({
+    mutationFn: logout,
+  });
+};

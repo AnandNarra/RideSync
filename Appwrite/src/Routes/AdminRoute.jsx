@@ -2,17 +2,17 @@ import { Navigate, Outlet } from "react-router";
 import useAuthStore from "../store/authStore";
 
 const AdminRoute = () => {
-  const { currentUser, isCheckingUser } = useAuthStore();
+  const { user, isCheckingUser } = useAuthStore();
 
   if (isCheckingUser) {
     return <div className="h-screen flex items-center justify-center">Loading...</div>;
   }
 
-  if (!currentUser) {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (currentUser?.role !== "admin") {
+  if (user?.role !== "admin") {
     return <Navigate to="/" replace />;
   }
 
