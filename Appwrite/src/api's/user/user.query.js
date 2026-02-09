@@ -69,6 +69,8 @@ export const useGetMyDriverStatus = () => {
     queryKey: ["my-driver-status"],
     queryFn: getMyDriverStatus,
     retry: false,
+    staleTime: 0, // Always consider data stale
+    // refetchOnMount: 'always', // Always refetch when component mounts
     // If endpoint doesn't exist (404), treat as no status
     onError: (error) => {
       if (error.response?.status === 404) {

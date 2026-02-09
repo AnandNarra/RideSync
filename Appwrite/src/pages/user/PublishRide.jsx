@@ -61,7 +61,7 @@ const PublishRide = () => {
         }
     }, [pickup, drop]);
 
-    const handleSumbit = (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
 
         const formData = new FormData();
@@ -135,7 +135,7 @@ const PublishRide = () => {
                         Driver Details
                     </h1>
 
-                    <form onSubmit={handleSumbit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         <input
                             type="text"
                             name="licenseNumber"
