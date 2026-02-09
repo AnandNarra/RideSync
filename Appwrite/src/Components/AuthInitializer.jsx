@@ -19,6 +19,7 @@ const AuthInitializer = ({ children }) => {
         if (!token || !userStr) {
           setUser(null);
           setAccessToken(null);
+          setIsCheckingUser(false);
           return;
         }
 

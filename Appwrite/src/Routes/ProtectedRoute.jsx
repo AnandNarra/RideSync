@@ -8,7 +8,7 @@ const ProtectedRoute = () => {
   if (isCheckingUser) {
     return (
       <div className="h-screen flex items-center justify-center">
-        Checking authentication...
+        ProtectedRoute: Checking authentication...
       </div>
     );
   }

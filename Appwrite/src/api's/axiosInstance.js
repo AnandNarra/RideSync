@@ -1,4 +1,4 @@
-import { getAccessToken, setAccessToken } from "@/utils/tokens";
+import { getAccessToken, removeAccessToken, setAccessToken } from "@/utils/tokens";
 import axios from "axios";
 
 const axiosInstance = axios.create({
@@ -39,8 +39,8 @@ axiosInstance.interceptors.response.use(
 
             } catch (error) {
 
-                localStorage.removeItem("accessToken")
-                navigate("/login")
+                removeAccessToken()
+                window.location.href = "/login";
                 return Promise.reject(error)
             }
         }

@@ -5,7 +5,7 @@ const AdminRoute = () => {
   const { user, isCheckingUser } = useAuthStore();
 
   if (isCheckingUser) {
-    return <div className="h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="h-screen flex items-center justify-center">Admin Route Loading...</div>;
   }
 
   if (!user) {
