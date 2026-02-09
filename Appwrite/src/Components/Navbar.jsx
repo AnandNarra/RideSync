@@ -1,5 +1,4 @@
 import { useLogout } from "@/api's/user/user.query";
-import AppwriteAccount from "@/appwrite/AccountServices";
 import useAuthStore from "@/store/authStore";
 import React from "react";
 import { useNavigate } from "react-router";
@@ -12,7 +11,6 @@ const Navbar = () => {
   const { mutate: logoutUser, isLoading } = useLogout();
   const logoutStore = useAuthStore((state) => state.logout);
 
-  const appwriteAccount = new AppwriteAccount();
 
   const handleLogout = () => {
     logoutUser(undefined, {

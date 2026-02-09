@@ -8,7 +8,7 @@ const getAccessToken = () => {
 
 
 
-export const removeAccessToken = () =>
+ const removeAccessToken = () =>
   localStorage.removeItem("access-token");
 
 
