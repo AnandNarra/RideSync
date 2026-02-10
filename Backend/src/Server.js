@@ -3,6 +3,7 @@ const connectDB = require("./config/db");
 
 const userRouter = require('./routes/auth.router.js')
 const adminRouter = require('./routes/admin.router.js')
+const driverRouter = require('./routes/driver.router.js')
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
 
@@ -42,6 +43,7 @@ connectDB();
 
 app.use('/api/v1/', userRouter)
 app.use('/api/v1/',adminRouter)
+app.use('/api/v1', driverRouter)
 
 // Port
 const PORT = process.env.PORT || 5000;

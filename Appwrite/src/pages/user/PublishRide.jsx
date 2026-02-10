@@ -4,6 +4,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import Map from '../../utils/Map';
 import LocationAutocomplete from '../../utils/LocationAutocomplete';
 import "leaflet/dist/leaflet.css";
+import { usePublishRide } from '@/api\'s/driver\'s/driver\'s.query';
+import { useNavigate } from "react-router-dom";
+
+import { toast } from "sonner";
+
 
 const PublishRide = () => {
 
@@ -20,6 +25,9 @@ const PublishRide = () => {
     const [selectedRouteIndex, setSelectedRouteIndex] = useState(0);
     const [loading, setLoading] = useState(false);
 
+
+    const navigate = useNavigate();
+
     const [rideDetails, setRideDetails] = useState({
         date: "",
         time: "",
@@ -27,9 +35,13 @@ const PublishRide = () => {
         price: ""
     });
 
-    const { mutate: submitRequest, isPending } = useSubmitDriverRequest();
+
     const { data: statusData, isLoading: isLoadingStatus } = useGetMyDriverStatus();
     const queryClient = useQueryClient();
+
+    const { mutate: submitRequest, isPending: isSubmittingDriver } = useSubmitDriverRequest();
+    const { mutate: publishRideMutate, isPending: isPublishingRide } = usePublishRide();
+
 
     const fetchRoutes = async () => {
         if (!pickup || !drop) return;
@@ -93,24 +105,61 @@ const PublishRide = () => {
         });
     }
 
+    const buildPublishRidePayload = () => {
+        const selectedRoute = routes[selectedRouteIndex];
+        if (!selectedRoute) return null;
+
+        const departureTime = new Date(
+            `${rideDetails.date}T${rideDetails.time}`
+        ).toISOString();
+
+        return {
+            startLocation: {
+                name: pickup.name,
+                coordinates: [pickup.lng, pickup.lat]
+            },
+            endLocation: {
+                name: drop.name,
+                coordinates: [drop.lng, drop.lat]
+            },
+            route: {
+                type: "LineString",
+                coordinates: selectedRoute.geometry.coordinates
+            },
+            departureTime,
+            availableSeats: Number(rideDetails.seats),
+            pricePerSeat: Number(rideDetails.price)
+        };
+    };
+
+
     const handlePublishRide = (e) => {
         e.preventDefault();
 
-        if (!pickup || !drop || !rideDetails.date || !rideDetails.time || !rideDetails.seats || !rideDetails.price) {
-            alert("Please fill all fields");
+        if (!pickup || !drop || routes.length === 0) {
+            toast.error("Please select pickup, drop and route");
             return;
         }
 
-        const rideData = {
-            pickup,
-            drop,
-            route: routes[selectedRouteIndex],
-            ...rideDetails
-        };
+        const payload = buildPublishRidePayload();
+        if (!payload) {
+            toast.error("Please reselect a route");
+            return;
+        }
 
-        console.log("Publishing ride:", rideData);
-        // TODO: Call API to publish ride
+        publishRideMutate(payload, {
+            onSuccess: () => {
+                toast.success("Ride published successfully 🚗");
+                navigate("/myRide");
+            },
+            onError: (error) => {
+                toast.error(
+                    error?.response?.data?.message || "Failed to publish ride"
+                );
+            }
+        });
     };
+
 
     if (isLoadingStatus) {
         return (
@@ -194,10 +243,10 @@ const PublishRide = () => {
 
                         <button
                             type="submit"
-                            disabled={isPending}
+                            disabled={isSubmittingDriver}
                             className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {isPending ? "Submitting..." : "Send Details"}
+                            {isSubmittingDriver ? "Submitting..." : "Send Details"}
                         </button>
                     </form>
                 </div>
@@ -340,7 +389,7 @@ const PublishRide = () => {
                                         <input
                                             type="number"
                                             min="1"
-                                            max="8"
+                                            max="6"
                                             value={rideDetails.seats}
                                             onChange={(e) => setRideDetails({ ...rideDetails, seats: e.target.value })}
                                             placeholder="e.g., 3"
@@ -383,10 +432,10 @@ const PublishRide = () => {
                                 {/* Submit Button */}
                                 <button
                                     type="submit"
-                                    disabled={loading}
+                                    disabled={isPublishingRide}
                                     className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {loading ? "Loading..." : "Publish Ride"}
+                                    {isPublishingRide ? "Publishing..." : "Publish Ride"}
                                 </button>
                             </form>
                         </div>
