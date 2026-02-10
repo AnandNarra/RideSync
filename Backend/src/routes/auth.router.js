@@ -15,23 +15,23 @@ router.post('/login', validate(loginSchema), login)
 
 router.post('/driverRequest', verifyAccessToken, upload.fields([
     {
-        name:"licensePhoto",
-        maxCount:1
+        name: "licensePhoto",
+        maxCount: 1
     },
     {
-        name:"aadhaarPhoto",
-        maxCount:1
+        name: "aadhaarPhoto",
+        maxCount: 1
     }
-]) ,  driverRequest)
+]), driverRequest)
 
 
 router.get('/myDriverStatus', verifyAccessToken, getMyDriverStatus)
 
-router.post('/logout', verifyAccessToken , logout)
+router.post('/logout', verifyAccessToken, logout)
 
-router.get('/my-profile', verifyAccessToken , getMyProfile)
+router.get('/my-profile', verifyAccessToken, getMyProfile)
 
-router.get('/auth/token/refresh/', refreshAccessToken)
+router.post('/auth/token/refresh/', refreshAccessToken)
 
 
 module.exports = router
