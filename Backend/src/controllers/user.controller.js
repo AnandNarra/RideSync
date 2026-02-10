@@ -81,7 +81,7 @@ const login = async (req, res) => {
       })
     }
 
-    const accessToken = generateAccessToken(user._id)
+    const accessToken = generateAccessToken(user._id, user.role)
 
     const refreshToken = generateRefreshToken(user._id)
 
@@ -99,7 +99,7 @@ const login = async (req, res) => {
       success: true,
       message: "user login successfully...",
       accessToken,
-      user: { _id: user._id, role: user.role , name:user.name}
+      user: { _id: user._id, role: user.role, name: user.name }
     })
 
   } catch (error) {
@@ -342,7 +342,7 @@ const refreshAccessToken = async (req, res) => {
       throw new Error("User not found")
     }
 
-    const newAccessToken = generateAccessToken(userId);
+    const newAccessToken = generateAccessToken(userId, exitingUser.role);
 
     return res.status(200).json({
       accessToken: newAccessToken
@@ -371,7 +371,7 @@ const getMyProfile = async (req, res) => {
 
     return res.status(200).json({
       message: "Use found successfully...",
-      user:existingUser
+      user: existingUser
     })
 
 

@@ -17,9 +17,10 @@ const verifyAccessToken = async (req, res, next) => {
         const decode =  jwt.verify(token, process.env.JWT_ACCESSTOKEN_SECRET)
 
         req.user = {
-            id:decode.id
+            id:decode.id,
+            role:decode.role
         }
-next()
+      next()
 
 
     } catch (error) {
