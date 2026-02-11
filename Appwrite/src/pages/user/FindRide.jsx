@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchRides } from "../../api's/ride/ride.query";
+import { useBookRide } from "../../api's/booking/booking.query";
 import Map from '../../utils/Map';
 import LocationAutocomplete from '../../utils/LocationAutocomplete';
-import { Search, MapPin, Users, Calendar, ArrowRight, User, Clock, ShieldCheck, ChevronRight } from 'lucide-react';
+import { Search, MapPin, Users, Calendar, ArrowRight, User, Clock, ShieldCheck, ChevronRight, Check } from 'lucide-react';
 import { toast } from "sonner";
 
 const FindRide = () => {
@@ -15,6 +16,8 @@ const FindRide = () => {
 
     const [selectedRide, setSelectedRide] = useState(null);
     const [mapRoutes, setMapRoutes] = useState([]);
+    const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+    const [seatsRequested, setSeatsRequested] = useState(1);
 
     const { data: ridesData, isLoading, refetch } = useSearchRides({
         from: pickup?.name,
@@ -22,6 +25,8 @@ const FindRide = () => {
         seats: searchParams.seats,
         date: searchParams.date
     });
+
+    const { mutate: bookRide, isPending: isBooking } = useBookRide();
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -39,6 +44,20 @@ const FindRide = () => {
         }
     };
 
+    const handleConfirmBooking = () => {
+        if (!selectedRide) return;
+
+        bookRide({
+            rideId: selectedRide._id,
+            seatsRequested
+        }, {
+            onSuccess: () => {
+                setIsBookingModalOpen(false);
+                setSelectedRide(null);
+            }
+        });
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-6">
             <div className="max-w-7xl mx-auto">
@@ -50,7 +69,7 @@ const FindRide = () => {
                 </div>
 
                 <div className="grid lg:grid-cols-2 gap-8 items-start">
-                    {/* Left Column: Map - MATCHING PUBLISH RIDE SIZE */}
+                    {/* Left Column: Map */}
                     <div className="space-y-6">
                         <div className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden h-[600px] relative z-10 border border-slate-100 ring-1 ring-slate-200/50">
                             <Map
@@ -107,7 +126,10 @@ const FindRide = () => {
                                             </div>
                                         </div>
 
-                                        <button className="w-full relative overflow-hidden group bg-blue-600 text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-blue-500/20 hover:bg-blue-700 transition-all flex items-center justify-center gap-3">
+                                        <button
+                                            onClick={() => setIsBookingModalOpen(true)}
+                                            className="w-full relative overflow-hidden group bg-blue-600 text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-blue-500/20 hover:bg-blue-700 transition-all flex items-center justify-center gap-3"
+                                        >
                                             <span className="relative z-10">Confirm Ride</span>
                                             <span className="relative z-10 w-1 h-1 rounded-full bg-white/40" />
                                             <span className="relative z-10">₹{selectedRide.pricePerSeat}</span>
@@ -280,6 +302,76 @@ const FindRide = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Booking Modal */}
+            {isBookingModalOpen && selectedRide && (
+                <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsBookingModalOpen(false)} />
+                    <div className="relative bg-white w-full max-w-md rounded-[3rem] p-8 shadow-2xl animate-in zoom-in-95 duration-300 ring-1 ring-slate-200">
+                        <div className="text-center mb-8">
+                            <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-xl">
+                                <Users size={32} className="text-blue-600" />
+                            </div>
+                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Select Seats</h2>
+                            <p className="text-slate-500 text-sm mt-1 font-medium">How many people are traveling?</p>
+                        </div>
+
+                        <div className="space-y-8">
+                            <div className="flex items-center justify-center gap-6">
+                                <button
+                                    onClick={() => setSeatsRequested(Math.max(1, seatsRequested - 1))}
+                                    className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-900 transition-all font-black text-2xl border border-slate-100"
+                                >
+                                    -
+                                </button>
+                                <div className="text-5xl font-black text-slate-900 w-12 text-center tabular-nums">
+                                    {seatsRequested}
+                                </div>
+                                <button
+                                    onClick={() => setSeatsRequested(Math.min(selectedRide.availableSeats, seatsRequested + 1))}
+                                    className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-900 transition-all font-black text-2xl border border-slate-100"
+                                >
+                                    +
+                                </button>
+                            </div>
+
+                            <div className="bg-slate-50 p-5 rounded-3xl space-y-3">
+                                <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-slate-400">
+                                    <span>Price per seat</span>
+                                    <span className="text-slate-900">₹{selectedRide.pricePerSeat}</span>
+                                </div>
+                                <div className="flex justify-between items-center pt-3 border-t border-slate-200/50">
+                                    <span className="text-sm font-black text-slate-900">Total Amount</span>
+                                    <span className="text-2xl font-black text-blue-600 tracking-tighter">₹{selectedRide.pricePerSeat * seatsRequested}</span>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-3">
+                                <button
+                                    onClick={handleConfirmBooking}
+                                    disabled={isBooking}
+                                    className="w-full bg-slate-900 hover:bg-black text-white py-4.5 rounded-2xl font-black text-sm transition-all shadow-xl flex items-center justify-center gap-3 disabled:opacity-50"
+                                >
+                                    {isBooking ? (
+                                        <div className="h-5 w-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                    ) : (
+                                        <>
+                                            <Check size={18} />
+                                            <span>Request Booking</span>
+                                        </>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => setIsBookingModalOpen(false)}
+                                    className="w-full bg-white text-slate-400 py-4.5 rounded-2xl font-black text-sm hover:text-slate-600 transition-all"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Custom Scrollbar Styles */}
             <style dangerouslySetInnerHTML={{

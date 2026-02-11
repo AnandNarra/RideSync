@@ -52,6 +52,12 @@ const Navbar = () => {
             <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/myRide')}>
               My Rides
             </li>
+            <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/myBookings')}>
+              My Bookings
+            </li>
+            <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/bookingRequests')}>
+              Booking Requests
+            </li>
 
             <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/myProfile')}>
               My-Profile
