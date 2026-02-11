@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { loginUser, registerUser, submitDriverRequest, getMyDriverStatus, logout } from "./user.api";
+import { loginUser, registerUser, submitDriverRequest, getMyDriverStatus, logout, getMyProfile } from "./user.api";
 import { setAccessToken } from "@/utils/tokens";
 
 
@@ -77,6 +77,13 @@ export const useGetMyDriverStatus = () => {
         return { data: { status: 'none' } };
       }
     },
+  });
+};
+
+export const useGetMyProfile = () => {
+  return useQuery({
+    queryKey: ["my-profile"],
+    queryFn: getMyProfile,
   });
 };
 

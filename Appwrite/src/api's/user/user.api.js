@@ -22,14 +22,17 @@ export const submitDriverRequest = async (payload) => {
   return data;
 };
 
-export const logout = async () =>{
+export const logout = async () => {
   const response = await axiosInstance.post('/api/v1/logout');
   return response.data
 }
 
 export const getMyDriverStatus = async () => {
   const response = await axiosInstance('/api/v1/myDriverStatus');
-  return response.data
-}
+  return response.data;
+};
 
-
+export const getMyProfile = async () => {
+  const response = await axiosInstance.get('/api/v1/my-profile');
+  return response.data;
+};
