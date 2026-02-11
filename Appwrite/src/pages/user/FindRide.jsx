@@ -286,7 +286,9 @@ const FindRide = () => {
                                                     <div className="flex items-center gap-4 mt-1.5">
                                                         <div className="flex items-center gap-1.5">
                                                             <Users size={12} className="text-slate-400" />
-                                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">{ride.availableSeats} Seats Left</span>
+                                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
+                                                                {ride.totalSeats || ride.availableSeats} / {ride.availableSeats} Seats Left
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </div>

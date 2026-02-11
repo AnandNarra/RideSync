@@ -1,9 +1,12 @@
-import React from 'react';
+import { useSearchParams } from 'react-router';
 import { useGetBookingRequests, useAcceptBooking, useRejectBooking } from "../../api's/booking/booking.query";
-import { Users, MapPin, Clock, Calendar, Check, X, User, Phone, Mail } from 'lucide-react';
+import { Users, MapPin, Clock, Calendar, Check, X, User, Phone, Mail, FilterX } from 'lucide-react';
 
 const BookingRequests = () => {
-    const { data: requestsData, isLoading } = useGetBookingRequests();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const rideId = searchParams.get('rideId');
+
+    const { data: requestsData, isLoading } = useGetBookingRequests(rideId);
     const { mutate: acceptBooking, isPending: isAccepting } = useAcceptBooking();
     const { mutate: rejectBooking, isPending: isRejecting } = useRejectBooking();
 
@@ -13,6 +16,21 @@ const BookingRequests = () => {
                 <div className="mb-12 text-center">
                     <h1 className="text-4xl font-black text-slate-900 tracking-tight">Booking <span className="text-blue-600">Requests</span></h1>
                     <p className="text-slate-500 mt-2 font-medium">Manage your passengers and fill your empty seats.</p>
+
+                    {rideId && (
+                        <div className="mt-6 flex items-center justify-center gap-4">
+                            <div className="bg-blue-50 border border-blue-100 px-4 py-2 rounded-2xl flex items-center gap-3">
+                                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest leading-none">Filtering by Ride</p>
+                                <button
+                                    onClick={() => setSearchParams({})}
+                                    className="p-1 hover:bg-blue-100 rounded-lg transition-all text-blue-600"
+                                    title="Show all requests"
+                                >
+                                    <FilterX size={16} />
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {isLoading ? (

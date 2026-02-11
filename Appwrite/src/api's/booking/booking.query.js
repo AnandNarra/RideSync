@@ -23,10 +23,10 @@ export const useGetMyBookings = () => {
     });
 };
 
-export const useGetBookingRequests = () => {
+export const useGetBookingRequests = (rideId) => {
     return useQuery({
-        queryKey: ["booking-requests"],
-        queryFn: bookingApi.getBookingRequests
+        queryKey: ["booking-requests", rideId],
+        queryFn: () => bookingApi.getBookingRequests(rideId)
     });
 };
 

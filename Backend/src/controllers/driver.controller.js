@@ -7,8 +7,8 @@ const publishRide = async (req, res) => {
   try {
     const ride = await Ride.create({
       driverId: req.user.id,
-      ...req.body
-
+      ...req.body,
+      totalSeats: req.body.availableSeats
     });
 
     res.status(201).json({
@@ -48,16 +48,29 @@ const getMyRides = async (req, res) => {
 const getBookingRequests = async (req, res) => {
   try {
     const driverId = req.user.id;
+    const { rideId } = req.query;
 
-    // Find all rides by this driver
-    const rides = await Ride.find({ driverId }).select("_id");
-    const rideIds = rides.map(r => r._id);
+    let query = { status: "pending" };
 
-    // Find pending bookings for these rides
-    const bookings = await Booking.find({
-      rideId: { $in: rideIds },
-      status: "pending"
-    })
+    if (rideId) {
+      // If rideId is provided, verify it belongs to this driver
+      const ride = await Ride.findOne({ _id: rideId, driverId });
+      if (!ride) {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized to view requests for this ride"
+        });
+      }
+      query.rideId = rideId;
+    } else {
+      // Find all rides by this driver
+      const rides = await Ride.find({ driverId }).select("_id");
+      const rideIds = rides.map(r => r._id);
+      query.rideId = { $in: rideIds };
+    }
+
+    // Find pending bookings
+    const bookings = await Booking.find(query)
       .populate("passengerId", "fullName phoneNumber email name profilePhoto")
       .populate("rideId", "startLocation endLocation departureTime availableSeats pricePerSeat")
       .sort({ createdAt: -1 });

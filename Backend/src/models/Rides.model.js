@@ -45,6 +45,11 @@ const rideSchema = new mongoose.Schema({
     required: true
   },
 
+  totalSeats: {
+    type: Number,
+    required: true
+  },
+
   pricePerSeat: {
     type: Number,
     required: true

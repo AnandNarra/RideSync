@@ -11,8 +11,9 @@ export const getMyBookings = async () => {
     return response.data;
 };
 
-export const getBookingRequests = async () => {
-    const response = await axiosInstance.get("/api/v1/driver/bookings");
+export const getBookingRequests = async (rideId) => {
+    const url = rideId ? `/api/v1/driver/bookings?rideId=${rideId}` : "/api/v1/driver/bookings";
+    const response = await axiosInstance.get(url);
     return response.data;
 };
 

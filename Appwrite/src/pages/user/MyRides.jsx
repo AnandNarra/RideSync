@@ -70,10 +70,10 @@ const MyRides = () => {
                   <div className="flex-1 space-y-8">
                     <div className="flex items-center gap-4">
                       <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${ride.status === 'published' ? 'bg-green-100 text-green-700 border-green-200' :
-                          ride.status === 'filled' ? 'bg-amber-100 text-amber-700 border-amber-200' :
-                            ride.status === 'cancelled' ? 'bg-red-100 text-red-700 border-red-200' :
-                              ride.status === 'completed' ? 'bg-blue-100 text-blue-700 border-blue-200' :
-                                'bg-slate-100 text-slate-700 border-slate-200'
+                        ride.status === 'filled' ? 'bg-amber-100 text-amber-700 border-amber-200' :
+                          ride.status === 'cancelled' ? 'bg-red-100 text-red-700 border-red-200' :
+                            ride.status === 'completed' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                              'bg-slate-100 text-slate-700 border-slate-200'
                         }`}>
                         {ride.status}
                       </div>
@@ -105,10 +105,12 @@ const MyRides = () => {
                   <div className="w-full lg:w-80 flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-slate-50 pt-10 lg:pt-0 lg:pl-10">
                     <div className="grid grid-cols-2 gap-4 mb-8">
                       <div className="bg-slate-50 p-5 rounded-3xl">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Available</p>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Total / Available</p>
                         <div className="flex items-center gap-2">
                           <Users size={16} className="text-blue-600" />
-                          <span className="text-xl font-black text-slate-900">{ride.availableSeats}</span>
+                          <span className="text-lg font-black text-slate-900">
+                            {ride.totalSeats || ride.availableSeats} / <span className="text-blue-600">{ride.availableSeats}</span>
+                          </span>
                         </div>
                       </div>
                       <div className="bg-slate-50 p-5 rounded-3xl">
@@ -121,7 +123,7 @@ const MyRides = () => {
                       {ride.status === 'published' || ride.status === 'filled' ? (
                         <>
                           <button
-                            onClick={() => navigate('/bookingRequests')}
+                            onClick={() => navigate(`/bookingRequests?rideId=${ride._id}`)}
                             className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3"
                           >
                             <MessageSquare size={16} />
