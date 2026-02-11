@@ -19,6 +19,8 @@ import PublishRide from './pages/user/PublishRide';
 import MyRides from './pages/user/MyRides';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import DriverRequest from './pages/admin/DriverRequest';
+import MyBookings from './pages/user/MyBookings';
+import BookingRequests from './pages/driver/BookingRequests';
 import AuthInitializer from './Components/AuthInitializer';
 import { Toaster } from 'sonner';
 import MyProfile from './pages/user/MyProfile';
@@ -33,7 +35,6 @@ const queryClient = new QueryClient({
     },
   },
 })
-
 
 const router = createBrowserRouter([
 
@@ -54,6 +55,8 @@ const router = createBrowserRouter([
           { path: "/publishaRide", element: <PublishRide /> },
           { path: "/myRide", element: <MyRides /> },
           { path: "/myProfile", element: <MyProfile /> },
+          { path: "/myBookings", element: <MyBookings /> },
+          { path: "/bookingRequests", element: <BookingRequests /> },
         ],
       },
     ],
