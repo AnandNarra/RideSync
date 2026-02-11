@@ -52,7 +52,7 @@ const rideSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    enum: ["published", "full", "cancelled", "completed"],
+    enum: ["published", "full", "filled", "cancelled", "completed"],
     default: "published"
   }
 
@@ -62,4 +62,4 @@ rideSchema.index({ "startLocation.coordinates": "2dsphere" });
 rideSchema.index({ "endLocation.coordinates": "2dsphere" });
 
 
-module.exports = mongoose.model("Ride" , rideSchema)
+module.exports = mongoose.model("Ride", rideSchema)

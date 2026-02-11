@@ -16,7 +16,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-const allowedOrigin =[
+const allowedOrigin = [
   "http://localhost:5173",
   "https://anand.vercel.app"
 ];
@@ -25,14 +25,14 @@ const allowedOrigin =[
 // CORS options
 
 const corsOptions = {
-  origin:(origin , callback) =>{
-    if(allowedOrigin.includes(origin) || !origin) {
-      callback(null , true);
+  origin: (origin, callback) => {
+    if (allowedOrigin.includes(origin) || !origin) {
+      callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
     }
   },
-  credentials : true,
+  credentials: true,
 };
 
 app.use(cors(corsOptions));
@@ -43,8 +43,8 @@ connectDB();
 
 
 app.use('/api/v1/', userRouter)
-app.use('/api/v1/',adminRouter)
-app.use('/api/v1', driverRouter)
+app.use('/api/v1/', adminRouter)
+app.use('/api/v1/driver', driverRouter)
 app.use("/api/v1", rideRouter)
 
 // Port
