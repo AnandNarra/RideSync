@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import useAuthStore from "@/store/authStore";
 import * as bookingApi from "./booking.api";
 import { toast } from "sonner";
 
@@ -17,16 +18,20 @@ export const useBookRide = () => {
 };
 
 export const useGetMyBookings = () => {
+    const user = useAuthStore(state => state.user);
     return useQuery({
-        queryKey: ["my-bookings"],
-        queryFn: bookingApi.getMyBookings
+        queryKey: ["my-bookings", user?._id],
+        queryFn: bookingApi.getMyBookings,
+        enabled: !!user?._id
     });
 };
 
 export const useGetBookingRequests = (rideId) => {
+    const user = useAuthStore(state => state.user);
     return useQuery({
-        queryKey: ["booking-requests", rideId],
-        queryFn: () => bookingApi.getBookingRequests(rideId)
+        queryKey: ["booking-requests", rideId, user?._id],
+        queryFn: () => bookingApi.getBookingRequests(rideId),
+        enabled: !!user?._id
     });
 };
 

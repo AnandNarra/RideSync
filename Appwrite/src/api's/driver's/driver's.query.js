@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import useAuthStore from "@/store/authStore";
 import { getMyRides, publishRide, cancelRide } from "./driver's.api";
 import { toast } from "sonner";
 
@@ -9,9 +10,11 @@ export const usePublishRide = () => {
 };
 
 export const useGetMyRides = () => {
+  const user = useAuthStore(state => state.user);
   return useQuery({
-    queryKey: ["my-rides"],
-    queryFn: getMyRides
+    queryKey: ["my-rides", user?._id],
+    queryFn: getMyRides,
+    enabled: !!user?._id // Only run if we have a user
   });
 };
 

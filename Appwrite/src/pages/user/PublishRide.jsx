@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import useAuthStore from '@/store/authStore';
+import { getMyProfile } from '@/api\'s/user/user.api';
 import { useSubmitDriverRequest, useGetMyDriverStatus } from '../../api\'s/user/user.query';
 import { useQueryClient } from '@tanstack/react-query';
 import Map from '../../utils/Map';
@@ -37,10 +39,26 @@ const PublishRide = () => {
 
 
     const { data: statusData, isLoading: isLoadingStatus } = useGetMyDriverStatus();
+    const { user, setUser } = useAuthStore();
     const queryClient = useQueryClient();
 
     const { mutate: submitRequest, isPending: isSubmittingDriver } = useSubmitDriverRequest();
     const { mutate: publishRideMutate, isPending: isPublishingRide } = usePublishRide();
+
+    // Sync user role if driver status is approved but role is still 'user'
+    useEffect(() => {
+        if (statusData?.data?.status === 'approved' && user?.role === 'user') {
+            const syncRole = async () => {
+                try {
+                    const profileData = await getMyProfile();
+                    setUser(profileData.user);
+                } catch (error) {
+                    console.error("Failed to sync role:", error);
+                }
+            };
+            syncRole();
+        }
+    }, [statusData, user, setUser]);
 
 
     const fetchRoutes = async () => {

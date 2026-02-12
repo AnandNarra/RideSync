@@ -44,23 +44,32 @@ const Navbar = () => {
           <ul className="hidden md:flex items-center gap-10 text-sm font-semibold text-gray-700">
             <li className="relative cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/findaRide')}>
               Find a Ride
-              <span className="absolute -bottom-1 left-0 h[2px] w-0 bg-blue-600 transition-all group-hover:w-full"></span>
             </li>
-            <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/publishaRide')}>
-              Publish a Ride
-            </li>
-            <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/myRide')}>
-              My Rides
-            </li>
+
+            {user?.role === 'driver' ? (
+              <>
+                <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/publishaRide')}>
+                  Publish a Ride
+                </li>
+                <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/myRide')}>
+                  My Rides
+                </li>
+                <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/bookingRequests')}>
+                  Booking Requests
+                </li>
+              </>
+            ) : (
+              <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/publishaRide')}>
+                Become a Driver
+              </li>
+            )}
+
             <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/myBookings')}>
               My Bookings
             </li>
-            <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/bookingRequests')}>
-              Booking Requests
-            </li>
 
             <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/myProfile')}>
-              My-Profile
+              My Profile
             </li>
           </ul>
 

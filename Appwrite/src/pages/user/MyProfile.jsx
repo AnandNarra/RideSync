@@ -1,6 +1,7 @@
 import useAuthStore from '@/store/authStore';
 import { useLogout } from "@/api's/user/user.query";
 import { getMyProfile } from "@/api's/user/user.api";
+import { useQueryClient } from '@tanstack/react-query';
 import React from 'react';
 import { User, Mail, Phone, Shield, LogOut, Calendar, Camera, MapPin, Star, Award, Settings, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router';
@@ -11,6 +12,7 @@ const MyProfile = () => {
   const { mutate: logoutUser } = useLogout();
   const clearStore = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = React.useState(!user);
 
   React.useEffect(() => {
@@ -37,6 +39,7 @@ const MyProfile = () => {
     logoutUser(null, {
       onSuccess: () => {
         clearStore();
+        queryClient.clear(); // Wipe the global query cache
         toast.success("Successfully logged out. See you soon! 👋");
         navigate('/login');
       },

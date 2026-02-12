@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { loginUser, registerUser, submitDriverRequest, getMyDriverStatus, logout, getMyProfile } from "./user.api";
 import { setAccessToken } from "@/utils/tokens";
+import useAuthStore from "@/store/authStore";
 
 
 export const useRegister = () => {
@@ -65,9 +66,11 @@ export const useSubmitDriverRequest = () => {
 };
 
 export const useGetMyDriverStatus = () => {
+  const user = useAuthStore(state => state.user);
   return useQuery({
-    queryKey: ["my-driver-status"],
+    queryKey: ["my-driver-status", user?._id],
     queryFn: getMyDriverStatus,
+    enabled: !!user?._id,
     retry: false,
     staleTime: 0, // Always consider data stale
     // refetchOnMount: 'always', // Always refetch when component mounts
