@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/User.model');
 const Driver = require('../models/Driver.model');
 const uploadOnCloudinary = require('../utils/cloudinary');
-const { cleanupUploadedFiles } = require('../utils/cleanupHelper');
+const { cleanupUploadedFiles, deleteFile } = require('../utils/cleanupHelper');
 
 const { generateAccessToken, generateRefreshToken } = require('../utils/generateToken')
 
@@ -12,6 +12,7 @@ const register = async (req, res) => {
   const { name, fullName, email, password, phoneNumber } = req.body;
 
   if (!name || !fullName || !email || !password || !phoneNumber) {
+    if (req.file) deleteFile(req.file.path);
     return res.status(400).json({
       message: "Please fill all required fields",
       success: false
@@ -23,10 +24,19 @@ const register = async (req, res) => {
     const exitingUser = await User.findOne({ email })
 
     if (exitingUser) {
+      if (req.file) deleteFile(req.file.path);
       return res.status(409).json({
         message: "User with this email already exists....",
         success: false
       })
+    }
+
+    let profilePhotoUrl = null;
+    if (req.file) {
+      const profilePhoto = await uploadOnCloudinary(req.file.path);
+      if (profilePhoto) {
+        profilePhotoUrl = profilePhoto.secure_url;
+      }
     }
 
     await User.create({
@@ -34,11 +44,9 @@ const register = async (req, res) => {
       fullName,
       email,
       password,
-      phoneNumber
+      phoneNumber,
+      profilePhoto: profilePhotoUrl
     })
-
-    // const newUser = new User(req.body)
-    // await newUser.save()
 
     return res.status(201).json({
       message: "user register successfully..."
@@ -47,6 +55,7 @@ const register = async (req, res) => {
   } catch (error) {
 
     console.log(error.message);
+    if (req.file) deleteFile(req.file.path);
 
     return res.status(500).json({
       message: "Something went wrong while registering user",
@@ -385,4 +394,82 @@ const getMyProfile = async (req, res) => {
 
 }
 
-module.exports = { register, login, driverRequest, getMyDriverStatus, logout, refreshAccessToken, getMyProfile }
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { fullName, phoneNumber, name, email } = req.body;
+    let updateData = {};
+
+    if (fullName) updateData.fullName = fullName;
+    if (phoneNumber) updateData.phoneNumber = phoneNumber;
+    if (name) updateData.name = name;
+
+    if (email) {
+      const existingUser = await User.findOne({ email, _id: { $ne: userId } });
+      if (existingUser) {
+        if (req.file) deleteFile(req.file.path);
+        return res.status(409).json({
+          success: false,
+          message: "Email is already taken",
+        });
+      }
+      updateData.email = email;
+    }
+
+    if (phoneNumber) {
+      const existingUser = await User.findOne({ phoneNumber, _id: { $ne: userId } });
+      if (existingUser) {
+        if (req.file) deleteFile(req.file.path);
+        return res.status(409).json({
+          success: false,
+          message: "Phone number is already taken",
+        });
+      }
+      updateData.phoneNumber = phoneNumber;
+    }
+
+    if (req.file) {
+      const profilePhotoLocalPath = req.file.path;
+      const profilePhoto = await uploadOnCloudinary(profilePhotoLocalPath);
+
+      if (!profilePhoto) {
+        return res.status(400).json({
+          success: false,
+          message: "Failed to upload profile photo",
+        });
+      }
+
+      updateData.profilePhoto = profilePhoto.secure_url;
+    }
+
+    const user = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+      runValidators: true
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user
+    });
+
+  } catch (error) {
+    console.error("Update Profile Error:", error);
+    if (req.file) deleteFile(req.file.path);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+module.exports = { register, login, driverRequest, getMyDriverStatus, logout, refreshAccessToken, getMyProfile, updateProfile }

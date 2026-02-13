@@ -1,5 +1,5 @@
 const express = require('express')
-const { register, login, driverRequest, getMyDriverStatus, logout, getMyProfile, refreshAccessToken } = require('../controllers/user.controller')
+const { register, login, driverRequest, getMyDriverStatus, logout, getMyProfile, refreshAccessToken, updateProfile } = require('../controllers/user.controller')
 const validate = require('../middlewares/validate.middleware')
 const { registerSchema, loginSchema } = require('../validators/user.validator')
 
@@ -10,7 +10,7 @@ const router = express.Router()
 
 
 
-router.post('/register', validate(registerSchema), register)
+router.post('/register', upload.single('profilePhoto'), validate(registerSchema), register)
 router.post('/login', validate(loginSchema), login)
 
 router.post('/driverRequest', verifyAccessToken, upload.fields([
@@ -30,6 +30,8 @@ router.get('/myDriverStatus', verifyAccessToken, getMyDriverStatus)
 router.post('/logout', verifyAccessToken, logout)
 
 router.get('/my-profile', verifyAccessToken, getMyProfile)
+
+router.patch('/update-profile', verifyAccessToken, upload.single('profilePhoto'), updateProfile)
 
 router.post('/auth/token/refresh/', refreshAccessToken)
 
