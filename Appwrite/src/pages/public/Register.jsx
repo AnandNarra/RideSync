@@ -24,6 +24,7 @@ export function Register() {
   const [email, setEmail] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [password, setPassword] = useState('')
+  const [profilePhoto, setProfilePhoto] = useState(null)
 
   const navigate = useNavigate();
 
@@ -35,13 +36,18 @@ export function Register() {
 
   async function handleRegister() {
     try {
-      await mutateAsync({
-        name: Name,
-        fullName,
-        email,
-        phoneNumber,
-        password,
-      });
+      const formData = new FormData();
+      formData.append('name', Name);
+      formData.append('fullName', fullName);
+      formData.append('email', email);
+      formData.append('phoneNumber', phoneNumber);
+      formData.append('password', password);
+
+      if (profilePhoto) {
+        formData.append('profilePhoto', profilePhoto);
+      }
+
+      await mutateAsync(formData);
 
       navigate('/login')
 
@@ -113,6 +119,16 @@ export function Register() {
                     placeholder="Enter your phoneNumber"
                     required
                     onChange={(e) => setPhoneNumber(e.target.value)}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="profilePhoto">Profile Photo (Optional)</Label>
+                  <Input
+                    id="profilePhoto"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setProfilePhoto(e.target.files[0])}
                   />
                 </div>
                 <div className="grid gap-2">

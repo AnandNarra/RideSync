@@ -4,7 +4,11 @@ import axiosInstance from "../axiosInstance";
 const URL = `${import.meta.env.VITE_API_BASE_URL}`;
 
 export const registerUser = async (payload) => {
-  const { data } = await axios.post(`${URL}/api/v1/register`, payload);
+  const { data } = await axios.post(`${URL}/api/v1/register`, payload, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  });
   return data;
 };
 
@@ -35,4 +39,13 @@ export const getMyDriverStatus = async () => {
 export const getMyProfile = async () => {
   const response = await axiosInstance.get('/api/v1/my-profile');
   return response.data;
+};
+
+export const updateUserProfile = async (payload) => {
+  const { data } = await axiosInstance.patch('/api/v1/update-profile', payload, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  });
+  return data;
 };

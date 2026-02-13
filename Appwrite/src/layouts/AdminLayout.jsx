@@ -25,8 +25,8 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="flex min-h-screen">
-      <aside className="w-64 bg-gray-900 text-white p-6 flex flex-col">
+    <div className="flex min-h-screen bg-gray-100">
+      <aside className="w-64 bg-gray-900 text-white p-6 flex flex-col h-screen sticky top-0">
         <div>
           <h2 className="text-xl font-bold">Admin Panel</h2>
           {user && (

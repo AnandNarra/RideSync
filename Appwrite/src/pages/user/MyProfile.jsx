@@ -1,19 +1,62 @@
 import useAuthStore from '@/store/authStore';
-import { useLogout } from "@/api's/user/user.query";
+import { useLogout, useUpdateProfile } from "@/api's/user/user.query";
 import { getMyProfile } from "@/api's/user/user.api";
 import { useQueryClient } from '@tanstack/react-query';
 import React from 'react';
-import { User, Mail, Phone, Shield, LogOut, Calendar, Camera, MapPin, Star, Award, Settings, ChevronRight } from 'lucide-react';
+import { User, Mail, Phone, Shield, LogOut, Calendar, Camera, MapPin, Star, Award, Settings, ChevronRight, Check, X } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 
 const MyProfile = () => {
   const { user, setUser } = useAuthStore();
   const { mutate: logoutUser } = useLogout();
+  const { mutate: updateProfile, isPending: isUpdating } = useUpdateProfile();
   const clearStore = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = React.useState(!user);
+
+  const [showEditModal, setShowEditModal] = React.useState(false);
+  const [editData, setEditData] = React.useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    fullName: user?.fullName || '',
+    phoneNumber: user?.phoneNumber || ''
+  });
+
+  const fileInputRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (user) {
+      setEditData({
+        name: user.name || '',
+        email: user.email || '',
+        fullName: user.fullName || '',
+        phoneNumber: user.phoneNumber || ''
+      });
+    }
+  }, [user]);
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append('profilePhoto', file);
+      updateProfile(formData);
+    }
+  };
+
+  const handleSaveProfile = () => {
+    const formData = new FormData();
+    formData.append('name', editData.name);
+    formData.append('email', editData.email);
+    formData.append('fullName', editData.fullName);
+    formData.append('phoneNumber', editData.phoneNumber);
+
+    updateProfile(formData, {
+      onSuccess: () => setShowEditModal(false)
+    });
+  };
 
   React.useEffect(() => {
     const fetchProfile = async () => {
@@ -95,8 +138,19 @@ const MyProfile = () => {
                   <User size={64} className="text-slate-300" />
                 )}
               </div>
-              <button className="absolute bottom-2 -right-2 w-12 h-12 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-500/30 flex items-center justify-center border-4 border-white hover:bg-blue-700 transition-all active:scale-95">
-                <Camera size={18} />
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUpdating}
+                className="absolute bottom-2 -right-2 w-12 h-12 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-500/30 flex items-center justify-center border-4 border-white hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50"
+              >
+                {isUpdating ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Camera size={18} />}
               </button>
             </div>
 
@@ -133,7 +187,11 @@ const MyProfile = () => {
             <div className="bg-white rounded-[2.5rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-50">
               <div className="flex items-center justify-between mb-10">
                 <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Personal <span className="text-blue-600 underline underline-offset-8 decoration-4 decoration-blue-100">Information</span></h3>
-                <button className="p-2 text-slate-400 hover:text-blue-600 transition-colors">
+                <button
+                  onClick={() => setShowEditModal(true)}
+                  className="p-3 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all active:scale-95"
+                  title="Edit Profile"
+                >
                   <Settings size={20} />
                 </button>
               </div>
@@ -209,6 +267,115 @@ const MyProfile = () => {
           </div>
         </div>
       </div>
+
+      {/* Profile Edit Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-[3rem] p-8 md:p-12 max-w-2xl w-full mx-4 shadow-2xl overflow-hidden relative border border-white">
+            <div className="flex justify-between items-center mb-10">
+              <div>
+                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Edit <span className="text-blue-600 underline underline-offset-8 decoration-4 decoration-blue-100">Profile</span></h3>
+                <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mt-3">Update your personal account details</p>
+              </div>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="w-12 h-12 bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all flex items-center justify-center active:scale-95"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8 mb-10">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Username</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors">
+                    <User size={16} />
+                  </div>
+                  <input
+                    type="text"
+                    value={editData.name}
+                    onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                    className="w-full bg-slate-50 border border-transparent focus:bg-white focus:border-blue-100 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-900 outline-none transition-all placeholder:text-slate-300"
+                    placeholder="Username"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors">
+                    <Award size={16} />
+                  </div>
+                  <input
+                    type="text"
+                    value={editData.fullName}
+                    onChange={(e) => setEditData({ ...editData, fullName: e.target.value })}
+                    className="w-full bg-slate-50 border border-transparent focus:bg-white focus:border-blue-100 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-900 outline-none transition-all placeholder:text-slate-300"
+                    placeholder="Full Name"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors">
+                    <Mail size={16} />
+                  </div>
+                  <input
+                    type="email"
+                    value={editData.email}
+                    onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                    className="w-full bg-slate-50 border border-transparent focus:bg-white focus:border-blue-100 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-900 outline-none transition-all placeholder:text-slate-300"
+                    placeholder="Email Address"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors">
+                    <Phone size={16} />
+                  </div>
+                  <input
+                    type="text"
+                    value={editData.phoneNumber}
+                    onChange={(e) => setEditData({ ...editData, phoneNumber: e.target.value })}
+                    className="w-full bg-slate-50 border border-transparent focus:bg-white focus:border-blue-100 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-900 outline-none transition-all placeholder:text-slate-300"
+                    placeholder="Phone Number"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="flex-1 py-4 bg-slate-50 text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 hover:text-slate-600 transition-all active:scale-95"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveProfile}
+                disabled={isUpdating}
+                className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-500/20 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+              >
+                {isUpdating ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Check size={16} />
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

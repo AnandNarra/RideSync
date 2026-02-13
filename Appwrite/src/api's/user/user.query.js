@@ -1,8 +1,9 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { loginUser, registerUser, submitDriverRequest, getMyDriverStatus, logout, getMyProfile } from "./user.api";
+import { loginUser, registerUser, submitDriverRequest, getMyDriverStatus, logout, getMyProfile, updateUserProfile } from "./user.api";
 import { setAccessToken } from "@/utils/tokens";
 import useAuthStore from "@/store/authStore";
+import { useQueryClient } from "@tanstack/react-query";
 
 
 export const useRegister = () => {
@@ -87,6 +88,31 @@ export const useGetMyProfile = () => {
   return useQuery({
     queryKey: ["my-profile"],
     queryFn: getMyProfile,
+  });
+};
+
+export const useUpdateProfile = () => {
+  const queryClient = useQueryClient();
+  const setUser = useAuthStore(state => state.setUser);
+
+  return useMutation({
+    mutationFn: updateUserProfile,
+
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+      setUser(data.user);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      toast.success("Profile updated! 🚀", {
+        description: data.message
+      });
+    },
+
+    onError: (error) => {
+      toast.error("Update failed ❌", {
+        description: error.response?.data?.message || "Internal server error"
+      });
+    }
   });
 };
 
