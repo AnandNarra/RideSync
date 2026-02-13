@@ -184,5 +184,171 @@ const getMyBookings = async (req, res) => {
         });
     }
 }
+const updateRide = async (req, res) => {
+    try {
+        const { rideId } = req.params;
+        const driverId = req.user.id;
+        const { startLocation, endLocation, departureTime, totalSeats, availableSeats, pricePerSeat } = req.body;
 
-module.exports = { findRides, bookRide, completeRide, getMyBookings }
+        const ride = await Ride.findById(rideId);
+
+        if (!ride) {
+            return res.status(404).json({
+                success: false,
+                message: "Ride not found"
+            });
+        }
+
+        // Only ride owner can update
+        if (ride.driverId.toString() !== driverId) {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized to update this ride"
+            });
+        }
+
+        const updateData = {};
+        if (startLocation) updateData.startLocation = startLocation;
+        if (endLocation) updateData.endLocation = endLocation;
+        if (departureTime) updateData.departureTime = departureTime;
+        if (totalSeats) updateData.totalSeats = totalSeats;
+        if (availableSeats) updateData.availableSeats = availableSeats;
+        if (pricePerSeat) updateData.pricePerSeat = pricePerSeat;
+
+        const updatedRide = await Ride.findByIdAndUpdate(rideId, updateData, {
+            new: true,
+            runValidators: true
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Ride updated successfully",
+            data: updatedRide
+        });
+
+    } catch (error) {
+        console.error("Update Ride Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to update ride",
+            error: error.message
+        });
+    }
+}
+
+const updateBooking = async (req, res) => {
+    try {
+        const { bookingId } = req.params;
+        const passengerId = req.user.id;
+        const { seatsRequested } = req.body;
+
+        const booking = await Booking.findById(bookingId).populate("rideId");
+
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: "Booking not found"
+            });
+        }
+
+        if (booking.passengerId.toString() !== passengerId) {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized to update this booking"
+            });
+        }
+
+        if (booking.status !== "pending" && booking.status !== "accepted") {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot update booking with status: ${booking.status}`
+            });
+        }
+
+        if (seatsRequested) {
+            const seatsDiff = seatsRequested - booking.seatsRequested;
+            if (booking.rideId.availableSeats < seatsDiff) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Not enough seats available"
+                });
+            }
+            booking.seatsRequested = seatsRequested;
+        }
+
+        await booking.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Booking updated successfully",
+            data: booking
+        });
+
+    } catch (error) {
+        console.error("Update Booking Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to update booking",
+            error: error.message
+        });
+    }
+}
+
+const cancelBooking = async (req, res) => {
+    try {
+        const { bookingId } = req.params;
+        const passengerId = req.user.id;
+
+        const booking = await Booking.findById(bookingId).populate("rideId");
+
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: "Booking not found"
+            });
+        }
+
+        if (booking.passengerId.toString() !== passengerId) {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized to cancel this booking"
+            });
+        }
+
+        if (booking.status === "cancelled" || booking.status === "completed") {
+            return res.status(400).json({
+                success: false,
+                message: `Booking is already ${booking.status}`
+            });
+        }
+
+        // If it was accepted, we need to return seats back to the ride
+        if (booking.status === "accepted") {
+            const ride = await Ride.findById(booking.rideId._id);
+            ride.availableSeats += booking.seatsRequested;
+            // If ride was filled, change status back to published
+            if (ride.status === 'filled') {
+                ride.status = 'published';
+            }
+            await ride.save();
+        }
+
+        booking.status = "cancelled";
+        await booking.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Booking cancelled successfully"
+        });
+
+    } catch (error) {
+        console.error("Cancel Booking Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to cancel booking",
+            error: error.message
+        });
+    }
+}
+
+module.exports = { findRides, bookRide, completeRide, getMyBookings, updateRide, updateBooking, cancelBooking }

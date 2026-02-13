@@ -1,17 +1,58 @@
-import { useGetMyRides, useCancelRide } from "@/api's/driver's/driver's.query";
+import { useGetMyRides, useCancelRide, useUpdateRide } from "@/api's/driver's/driver's.query";
 import React from "react";
 import { useNavigate } from "react-router";
-import { MapPin, Calendar, Clock, Users, ChevronRight, MessageSquare, CheckCircle2, MoreVertical, XCircle } from 'lucide-react';
+import { MapPin, Calendar, Clock, Users, ChevronRight, MessageSquare, CheckCircle2, MoreVertical, XCircle, X, Check } from 'lucide-react';
 import { toast } from "sonner";
 
 const MyRides = () => {
   const { data, isLoading } = useGetMyRides();
   const { mutate: cancelRide, isPending: isCancelling } = useCancelRide();
+  const { mutate: updateRide, isPending: isUpdating } = useUpdateRide();
   const navigate = useNavigate();
+
+  const [activeMenu, setActiveMenu] = React.useState(null);
+  const [showEditModal, setShowEditModal] = React.useState(false);
+  const [selectedRide, setSelectedRide] = React.useState(null);
+  const [editData, setEditData] = React.useState({
+    startLocation: { name: '', coordinates: [] },
+    endLocation: { name: '', coordinates: [] },
+    departureTime: '',
+    totalSeats: 1,
+    pricePerSeat: 0
+  });
+
+  const handleEditClick = (ride) => {
+    setSelectedRide(ride);
+    setEditData({
+      startLocation: {
+        name: ride.startLocation.name,
+        coordinates: ride.startLocation.coordinates
+      },
+      endLocation: {
+        name: ride.endLocation.name,
+        coordinates: ride.endLocation.coordinates
+      },
+      departureTime: new Date(ride.departureTime).toISOString().slice(0, 16),
+      totalSeats: ride.totalSeats,
+      pricePerSeat: ride.pricePerSeat
+    });
+    setShowEditModal(true);
+    setActiveMenu(null);
+  };
+
+  const handleUpdateSubmit = () => {
+    updateRide({
+      rideId: selectedRide._id,
+      payload: editData
+    }, {
+      onSuccess: () => setShowEditModal(false)
+    });
+  };
 
   const handleCancel = (rideId) => {
     if (window.confirm("Are you sure you want to cancel this ride? This will also cancel all associated bookings.")) {
       cancelRide(rideId);
+      setActiveMenu(null);
     }
   };
 
@@ -119,28 +160,46 @@ const MyRides = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="flex items-center gap-3">
                       {ride.status === 'published' || ride.status === 'filled' ? (
                         <>
                           <button
                             onClick={() => navigate(`/bookingRequests?rideId=${ride._id}`)}
-                            className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3"
+                            className="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3"
                           >
                             <MessageSquare size={16} />
                             View Requests
                           </button>
-                          <div className="flex gap-3">
+                          <div className="relative">
                             <button
-                              onClick={() => handleCancel(ride._id)}
-                              disabled={isCancelling}
-                              className="flex-1 py-4 bg-white text-red-500 border border-red-50 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-50 transition-all active:scale-95 flex items-center justify-center gap-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveMenu(activeMenu === ride._id ? null : ride._id);
+                              }}
+                              className="w-12 h-12 items-center justify-center flex bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 transition-all active:scale-95"
                             >
-                              <XCircle size={14} />
-                              Cancel Ride
+                              <MoreVertical size={16} />
                             </button>
-                            <button className="w-14 items-center justify-center flex bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 transition-all">
-                              <MoreVertical size={18} />
-                            </button>
+
+                            {activeMenu === ride._id && (
+                              <div className="absolute right-0 bottom-full mb-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 z-[60] overflow-hidden py-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                <button
+                                  onClick={() => handleEditClick(ride)}
+                                  className="w-full px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-3"
+                                >
+                                  <Clock size={14} />
+                                  Edit Ride
+                                </button>
+                                <button
+                                  onClick={() => handleCancel(ride._id)}
+                                  disabled={isCancelling}
+                                  className="w-full px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 transition-colors flex items-center gap-3"
+                                >
+                                  <XCircle size={14} />
+                                  Cancel Ride
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </>
                       ) : (
@@ -157,6 +216,115 @@ const MyRides = () => {
           ))}
         </div>
       </div>
+
+      {/* Ride Edit Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-[3rem] p-8 md:p-12 max-w-2xl w-full mx-4 shadow-2xl overflow-hidden relative border border-white">
+            <div className="flex justify-between items-center mb-10">
+              <div>
+                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Edit <span className="text-blue-600 underline underline-offset-8 decoration-4 decoration-blue-100">Ride</span></h3>
+                <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mt-3">Update your journey details</p>
+              </div>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="w-12 h-12 bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all flex items-center justify-center active:scale-95"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8 mb-10">
+              <div className="space-y-2 lg:col-span-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Pick up Location</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors">
+                    <div className="w-1.5 h-1.5 bg-blue-600 rounded-full ml-1" />
+                  </div>
+                  <input
+                    type="text"
+                    value={editData.startLocation.name}
+                    onChange={(e) => setEditData({ ...editData, startLocation: { ...editData.startLocation, name: e.target.value } })}
+                    className="w-full bg-slate-50 border border-transparent focus:bg-white focus:border-blue-100 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-900 outline-none transition-all placeholder:text-slate-300"
+                    placeholder="Pick up Location"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 lg:col-span-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Destination</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors">
+                    <MapPin size={16} />
+                  </div>
+                  <input
+                    type="text"
+                    value={editData.endLocation.name}
+                    onChange={(e) => setEditData({ ...editData, endLocation: { ...editData.endLocation, name: e.target.value } })}
+                    className="w-full bg-slate-50 border border-transparent focus:bg-white focus:border-blue-100 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-900 outline-none transition-all placeholder:text-slate-300"
+                    placeholder="Destination"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Departure Time</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors">
+                    <Clock size={16} />
+                  </div>
+                  <input
+                    type="datetime-local"
+                    value={editData.departureTime}
+                    onChange={(e) => setEditData({ ...editData, departureTime: e.target.value })}
+                    className="w-full bg-slate-50 border border-transparent focus:bg-white focus:border-blue-100 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-900 outline-none transition-all placeholder:text-slate-300"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Total Seats</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors">
+                    <Users size={16} />
+                  </div>
+                  <input
+                    type="number"
+                    min="1"
+                    max="6"
+                    value={editData.totalSeats}
+                    onChange={(e) => setEditData({ ...editData, totalSeats: Number(e.target.value) })}
+                    className="w-full bg-slate-50 border border-transparent focus:bg-white focus:border-blue-100 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-900 outline-none transition-all placeholder:text-slate-300"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="flex-1 py-4 bg-slate-50 text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 hover:text-slate-600 transition-all active:scale-95"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateSubmit}
+                disabled={isUpdating}
+                className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-500/20 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+              >
+                {isUpdating ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Check size={16} />
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

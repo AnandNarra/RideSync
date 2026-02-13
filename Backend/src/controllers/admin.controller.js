@@ -1,5 +1,7 @@
 const Drivers = require("../models/Driver.model");
 const User = require("../models/User.model");
+const Booking = require("../models/Booking.model");
+
 
 const getAllPendingRequest = async (req, res) => {
   try {
@@ -81,4 +83,31 @@ const updateDriverStatus = async (req, res) => {
   }
 };
 
-module.exports = { getAllPendingRequest, updateDriverStatus };
+const getAdminStats = async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const totalDrivers = await User.countDocuments({ role: "driver" });
+    const totalRides = await Booking.countDocuments();
+    const cancelledRides = await Booking.countDocuments({ status: "cancelled" });
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin statistics fetched successfully",
+      data: {
+        totalUsers,
+        totalDrivers,
+        totalRides,
+        cancelledRides,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+
+module.exports = { getAllPendingRequest, updateDriverStatus, getAdminStats };
