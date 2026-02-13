@@ -78,3 +78,33 @@ export const useCompleteRide = () => {
         }
     });
 };
+
+export const useUpdateBooking = () => {
+    const queryClient = useQueryClient();
+    const user = useAuthStore(state => state.user);
+    return useMutation({
+        mutationFn: bookingApi.updateBooking,
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ["my-bookings", user?._id] });
+            toast.success(data.message || "Booking updated successfully! 🚀");
+        },
+        onError: (error) => {
+            toast.error(error.response?.data?.message || "Failed to update booking ❌");
+        }
+    });
+};
+
+export const useCancelBooking = () => {
+    const queryClient = useQueryClient();
+    const user = useAuthStore(state => state.user);
+    return useMutation({
+        mutationFn: bookingApi.cancelBooking,
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ["my-bookings", user?._id] });
+            toast.success(data.message || "Booking cancelled successfully! 👋");
+        },
+        onError: (error) => {
+            toast.error(error.response?.data?.message || "Failed to cancel booking ❌");
+        }
+    });
+};

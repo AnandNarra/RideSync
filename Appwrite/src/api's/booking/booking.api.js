@@ -31,3 +31,13 @@ export const completeRide = async (rideId) => {
     const response = await axiosInstance.patch(`/api/v1/rides/${rideId}/complete`);
     return response.data;
 };
+
+export const updateBooking = async ({ bookingId, payload }) => {
+    const response = await axiosInstance.patch(`/api/v1/bookings/${bookingId}`, payload);
+    return response.data;
+};
+
+export const cancelBooking = async (bookingId) => {
+    const response = await axiosInstance.patch(`/api/v1/bookings/${bookingId}/cancel`);
+    return response.data;
+};

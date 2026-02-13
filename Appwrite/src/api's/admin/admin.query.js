@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAllDriverRequests, updateDriverRequestStatus } from "./admin.api";
+import { getAllDriverRequests, updateDriverRequestStatus, getAdminStats } from "./admin.api";
 import { toast } from "sonner";
 
 
@@ -9,6 +9,14 @@ export const useGetAllDriverRequests = () => {
     queryFn: getAllDriverRequests,
   });
 };
+
+export const useGetAdminStats = () => {
+  return useQuery({
+    queryKey: ["admin-stats"],
+    queryFn: getAdminStats,
+  });
+};
+
 
 export const useUpdateDriverStatus = () => {
   const queryClient = useQueryClient();

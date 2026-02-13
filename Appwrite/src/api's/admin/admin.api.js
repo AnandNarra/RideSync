@@ -9,6 +9,12 @@ export const getAllDriverRequests = async () => {
   return response.data;
 }
 
+export const getAdminStats = async () => {
+  const response = await axiosInstance.get('/api/v1/stats')
+  return response.data;
+}
+
+
 
 export const updateDriverRequestStatus = async ({ driverId, status, rejectedReason }) => {
   const payload = { status };
