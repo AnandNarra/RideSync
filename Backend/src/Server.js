@@ -18,7 +18,7 @@ app.use(cookieParser());
 
 const allowedOrigin = [
   "http://localhost:5173",
-  "https://anand.vercel.app"
+
 ];
 
 
