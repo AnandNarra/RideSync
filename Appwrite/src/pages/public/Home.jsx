@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Footer from "../../components/Footer";
 
 import "leaflet/dist/leaflet.css";
@@ -13,6 +14,7 @@ function Home() {
   const [routes, setRoutes] = useState([]);
   const [selectedRouteIndex, setSelectedRouteIndex] = useState(0);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const [ride, setRide] = useState({
     date: "",
@@ -50,9 +52,16 @@ function Home() {
     }
   }, [pickup, drop]);
 
-  function handlePublishRide(e) {
+  function handleSearchRide(e) {
     e.preventDefault();
-    console.log("Publishing ride:", { pickup, drop, ride });
+    navigate("/findaRide", {
+      state: {
+        pickup,
+        drop,
+        date: ride.date,
+        seats: ride.seats
+      }
+    });
   }
 
   const setUser = useAuthStore((state) => (state.setUser))
@@ -97,10 +106,16 @@ function Home() {
             </p>
 
             <div className="mt-8 flex gap-4">
-              <button className="px-6 py-3 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-lg">
+              <button
+                onClick={() => navigate("/findaRide")}
+                className="px-6 py-3 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-lg"
+              >
                 Find a Ride
               </button>
-              <button className="px-6 py-3 rounded-full border border-gray-300 text-gray-700 font-semibold hover:border-blue-600 hover:text-blue-600">
+              <button
+                onClick={() => navigate("/publishaRide")}
+                className="px-6 py-3 rounded-full border border-gray-300 text-gray-700 font-semibold hover:border-blue-600 hover:text-blue-600"
+              >
                 Publish a Ride
               </button>
             </div>
@@ -122,11 +137,11 @@ function Home() {
             </div>
 
             {/* FLOATING FORM */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[92%] bg-white p-3 rounded-2xl shadow-xl z-20 max-h-[480px] overflow-y-auto">
-              <form className="space-y-2" onSubmit={handlePublishRide}>
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[92%] bg-white p-3 rounded-2xl shadow-xl z-20 max-h-[480px] overflow-y-auto border border-blue-100">
+              <form className="space-y-2" onSubmit={handleSearchRide}>
 
-                <LocationAutocomplete placeholder="Pickup" onChange={setPickup} />
-                <LocationAutocomplete placeholder="Drop" onChange={setDrop} />
+                <LocationAutocomplete placeholder="Pickup" onChange={setPickup} value={pickup?.name} />
+                <LocationAutocomplete placeholder="Drop" onChange={setDrop} value={drop?.name} />
 
                 {/* ROUTE OPTIONS */}
                 {routes.length > 0 && (
@@ -251,7 +266,10 @@ function Home() {
           Find or publish a ride in minutes.
         </p>
         <div className="mt-6">
-          <button className="px-8 py-3 bg-white text-blue-600 rounded-full font-semibold shadow-md hover:bg-gray-100">
+          <button
+            onClick={() => navigate("/findaRide")}
+            className="px-8 py-3 bg-white text-blue-600 rounded-full font-semibold shadow-md hover:bg-gray-100"
+          >
             Get Started
           </button>
         </div>

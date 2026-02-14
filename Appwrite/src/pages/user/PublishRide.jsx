@@ -7,13 +7,13 @@ import Map from '../../utils/Map';
 import LocationAutocomplete from '../../utils/LocationAutocomplete';
 import "leaflet/dist/leaflet.css";
 import { usePublishRide } from '@/api\'s/driver\'s/driver\'s.query';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import { toast } from "sonner";
 
 
 const PublishRide = () => {
-
+    const location = useLocation();
     const [licenseNumber, setLicenseNumber] = useState("")
     const [aadhaarNumber, setAadhaarNumber] = useState("")
     const [experience, setExperience] = useState("")
@@ -36,6 +36,24 @@ const PublishRide = () => {
         seats: "",
         price: ""
     });
+
+    // Handle prefilled state from navigation (e.g., from Home page)
+    useEffect(() => {
+        if (location.state) {
+            const { pickup: prefilledPickup, drop: prefilledDrop, date, seats } = location.state;
+            if (prefilledPickup) setPickup(prefilledPickup);
+            if (prefilledDrop) setDrop(prefilledDrop);
+            if (date || seats) {
+                setRideDetails(prev => ({
+                    ...prev,
+                    date: date || prev.date,
+                    seats: seats || prev.seats
+                }));
+            }
+            // Clear location state to prevent re-filling if user navigates back and forth
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state]);
 
 
     const { data: statusData, isLoading: isLoadingStatus } = useGetMyDriverStatus();
@@ -329,6 +347,7 @@ const PublishRide = () => {
                                     <LocationAutocomplete
                                         placeholder="Enter pickup location"
                                         onChange={setPickup}
+                                        value={pickup?.name}
                                     />
                                 </div>
 
@@ -339,6 +358,7 @@ const PublishRide = () => {
                                     <LocationAutocomplete
                                         placeholder="Enter drop location"
                                         onChange={setDrop}
+                                        value={drop?.name}
                                     />
                                 </div>
 

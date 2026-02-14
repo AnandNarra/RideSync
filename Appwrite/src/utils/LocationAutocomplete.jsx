@@ -1,9 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 
-const LocationAutocomplete = ({ placeholder, onChange }) => {
-  const [query, setQuery] = useState("");
+const LocationAutocomplete = ({ placeholder, onChange, value = "" }) => {
+  const [query, setQuery] = useState(value);
   const [results, setResults] = useState([]);
   const debounceRef = useRef(null);
+
+  // Sync internal query with value prop for prefilling
+  useEffect(() => {
+    if (value) {
+      // If it's a full name like "Delhi, India", show the shortened version or full
+      // depending on preference. Here we'll show the short name if available.
+      const displayValue = value.split(',')[0];
+      setQuery(displayValue);
+    }
+  }, [value]);
 
   useEffect(() => {
     if (!query) {

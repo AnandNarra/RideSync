@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from "react-router-dom";
 import { useSearchRides } from "../../api's/ride/ride.query";
 import { useBookRide } from "../../api's/booking/booking.query";
 import Map from '../../utils/Map';
@@ -7,6 +8,7 @@ import { Search, MapPin, Users, Calendar, ArrowRight, User, Clock, ShieldCheck, 
 import { toast } from "sonner";
 
 const FindRide = () => {
+    const location = useLocation();
     const [pickup, setPickup] = useState(null);
     const [drop, setDrop] = useState(null);
     const [searchParams, setSearchParams] = useState({
@@ -14,10 +16,54 @@ const FindRide = () => {
         date: ""
     });
 
+    // Handle prefilled state from navigation (e.g., from Home page)
+    useEffect(() => {
+        if (location.state) {
+            const { pickup: prefilledPickup, drop: prefilledDrop, date, seats } = location.state;
+            if (prefilledPickup) setPickup(prefilledPickup);
+            if (prefilledDrop) setDrop(prefilledDrop);
+            if (date || seats) {
+                setSearchParams(prev => ({
+                    ...prev,
+                    date: date || prev.date,
+                    seats: seats || prev.seats
+                }));
+            }
+
+            // Clear location state to prevent re-filling if user navigates back and forth
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state]);
+
     const [selectedRide, setSelectedRide] = useState(null);
     const [mapRoutes, setMapRoutes] = useState([]);
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
     const [seatsRequested, setSeatsRequested] = useState(1);
+
+    const fetchRoutes = async () => {
+        if (!pickup || !drop) return;
+        try {
+            const accessToken = import.meta.env.VITE_MAPBOX_KEY;
+            const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${pickup.lng},${pickup.lat};${drop.lng},${drop.lat}?alternatives=false&geometries=geojson&access_token=${accessToken}`;
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.routes && data.routes.length > 0) {
+                setMapRoutes(data.routes);
+            }
+        } catch (error) {
+            console.error("Error fetching map routes:", error);
+        }
+    };
+
+    useEffect(() => {
+        if (pickup && drop && !selectedRide) {
+            fetchRoutes();
+        } else if (!pickup || !drop) {
+            setMapRoutes([]);
+        }
+    }, [pickup, drop, selectedRide]);
 
     const { data: ridesData, isLoading, refetch } = useSearchRides({
         from: pickup?.name,
@@ -40,7 +86,12 @@ const FindRide = () => {
     const handleRideSelect = (ride) => {
         setSelectedRide(ride);
         if (ride.route && ride.route.coordinates) {
-            setMapRoutes([{ geometry: { coordinates: ride.route.coordinates }, distance: 0, duration: 0 }]);
+            // When a ride is selected, show its specific route coordinates
+            setMapRoutes([{
+                geometry: { coordinates: ride.route.coordinates },
+                distance: 0,
+                duration: 0
+            }]);
         }
     };
 
@@ -155,6 +206,7 @@ const FindRide = () => {
                                         <LocationAutocomplete
                                             placeholder="Where from?"
                                             onChange={setPickup}
+                                            value={pickup?.name}
                                         />
                                     </div>
                                     <div className="relative group">
@@ -165,6 +217,7 @@ const FindRide = () => {
                                         <LocationAutocomplete
                                             placeholder="Where to?"
                                             onChange={setDrop}
+                                            value={drop?.name}
                                         />
                                     </div>
                                 </div>
@@ -231,8 +284,19 @@ const FindRide = () => {
                                     <div className="bg-slate-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                                         <Search size={28} className="text-slate-300" />
                                     </div>
-                                    <h3 className="text-lg font-black text-slate-800">Ready to travel?</h3>
-                                    <p className="text-slate-500 text-sm mt-2 max-w-[240px] mx-auto leading-relaxed">Enter your destination to see available shared rides.</p>
+                                    {pickup && drop ? (
+                                        <>
+                                            <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">No rides found</h3>
+                                            <p className="text-slate-500 text-sm mt-2 max-w-[280px] mx-auto leading-relaxed">
+                                                We couldn't find any drivers for <span className="text-blue-600 font-bold">{pickup.name.split(',')[0]}</span> to <span className="text-blue-600 font-bold">{drop.name.split(',')[0]}</span> on this date.
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <h3 className="text-lg font-black text-slate-800">Ready to travel?</h3>
+                                            <p className="text-slate-500 text-sm mt-2 max-w-[240px] mx-auto leading-relaxed">Enter your destination to see available shared rides.</p>
+                                        </>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
