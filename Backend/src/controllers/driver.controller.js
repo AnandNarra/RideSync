@@ -2,6 +2,7 @@
 const mongoose = require('mongoose')
 const Ride = require('../models/Rides.model')
 const Booking = require('../models/Booking.model')
+const sendEmail = require('../utils/sendEmail')
 
 const publishRide = async (req, res) => {
   try {
@@ -150,6 +151,47 @@ const acceptBooking = async (req, res) => {
     booking.status = "accepted";
     await booking.save();
 
+    // 7. Send email notification to passenger (fire-and-forget)
+    try {
+      await booking.populate("passengerId", "fullName email");
+      await booking.populate("rideId", "startLocation endLocation departureTime pricePerSeat");
+
+      const passengerEmail = booking.passengerId?.email;
+      const passengerName = booking.passengerId?.fullName || "Passenger";
+      const route = `${booking.rideId?.startLocation?.name?.split(',')[0] || 'N/A'} → ${booking.rideId?.endLocation?.name?.split(',')[0] || 'N/A'}`;
+      const departure = booking.rideId?.departureTime ? new Date(booking.rideId.departureTime).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A';
+      const totalPrice = (booking.rideId?.pricePerSeat || 0) * booking.seatsRequested;
+
+      if (passengerEmail) {
+        sendEmail(
+          passengerEmail,
+          "✅ Your RideSync Booking has been Accepted!",
+          `<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 520px; margin: 0 auto; background: #f8fafc; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0;">
+            <div style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); padding: 32px 28px; text-align: center;">
+              <h1 style="color: #ffffff; font-size: 22px; margin: 0;">🎉 Booking Accepted!</h1>
+            </div>
+            <div style="padding: 28px;">
+              <p style="color: #334155; font-size: 15px; margin: 0 0 20px;">Hi <strong>${passengerName}</strong>, great news! Your booking has been <span style="color: #16a34a; font-weight: 700;">accepted</span> by the driver.</p>
+              <div style="background: #ffffff; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0;">
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr><td style="padding: 8px 0; color: #94a3b8; font-size: 12px; text-transform: uppercase; font-weight: 700;">Route</td><td style="padding: 8px 0; color: #1e293b; font-weight: 600; text-align: right;">${route}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #94a3b8; font-size: 12px; text-transform: uppercase; font-weight: 700;">Departure</td><td style="padding: 8px 0; color: #1e293b; font-weight: 600; text-align: right;">${departure}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #94a3b8; font-size: 12px; text-transform: uppercase; font-weight: 700;">Seats</td><td style="padding: 8px 0; color: #1e293b; font-weight: 600; text-align: right;">${booking.seatsRequested}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #94a3b8; font-size: 12px; text-transform: uppercase; font-weight: 700;">Total</td><td style="padding: 8px 0; color: #16a34a; font-weight: 700; font-size: 18px; text-align: right;">₹${totalPrice}</td></tr>
+                </table>
+              </div>
+              <p style="color: #64748b; font-size: 13px; margin: 20px 0 0; text-align: center;">Get ready for your ride! 🚗</p>
+            </div>
+            <div style="background: #f1f5f9; padding: 16px; text-align: center;">
+              <p style="color: #94a3b8; font-size: 11px; margin: 0;">RideSync — Share the ride, share the joy</p>
+            </div>
+          </div>`
+        );
+      }
+    } catch (emailErr) {
+      console.error("Email notification error (accept):", emailErr.message);
+    }
+
     res.status(200).json({
       success: true,
       message: "Booking accepted successfully",
@@ -196,6 +238,46 @@ const rejectBooking = async (req, res) => {
 
     booking.status = "rejected";
     await booking.save();
+
+    // Send email notification to passenger (fire-and-forget)
+    try {
+      await booking.populate("passengerId", "fullName email");
+
+      const passengerEmail = booking.passengerId?.email;
+      const passengerName = booking.passengerId?.fullName || "Passenger";
+      const route = booking.rideId?.startLocation?.name
+        ? `${booking.rideId.startLocation.name.split(',')[0]} → ${booking.rideId.endLocation.name.split(',')[0]}`
+        : 'N/A';
+      const departure = booking.rideId?.departureTime ? new Date(booking.rideId.departureTime).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A';
+
+      if (passengerEmail) {
+        sendEmail(
+          passengerEmail,
+          "❌ Your RideSync Booking was Declined",
+          `<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 520px; margin: 0 auto; background: #f8fafc; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0;">
+            <div style="background: linear-gradient(135deg, #0f172a 0%, #4a1d1d 100%); padding: 32px 28px; text-align: center;">
+              <h1 style="color: #ffffff; font-size: 22px; margin: 0;">Booking Declined</h1>
+            </div>
+            <div style="padding: 28px;">
+              <p style="color: #334155; font-size: 15px; margin: 0 0 20px;">Hi <strong>${passengerName}</strong>, unfortunately your booking request was <span style="color: #dc2626; font-weight: 700;">declined</span> by the driver.</p>
+              <div style="background: #ffffff; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0;">
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr><td style="padding: 8px 0; color: #94a3b8; font-size: 12px; text-transform: uppercase; font-weight: 700;">Route</td><td style="padding: 8px 0; color: #1e293b; font-weight: 600; text-align: right;">${route}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #94a3b8; font-size: 12px; text-transform: uppercase; font-weight: 700;">Departure</td><td style="padding: 8px 0; color: #1e293b; font-weight: 600; text-align: right;">${departure}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #94a3b8; font-size: 12px; text-transform: uppercase; font-weight: 700;">Seats</td><td style="padding: 8px 0; color: #1e293b; font-weight: 600; text-align: right;">${booking.seatsRequested}</td></tr>
+                </table>
+              </div>
+              <p style="color: #64748b; font-size: 13px; margin: 20px 0 0; text-align: center;">Don't worry — there are plenty of rides available! 🔍</p>
+            </div>
+            <div style="background: #f1f5f9; padding: 16px; text-align: center;">
+              <p style="color: #94a3b8; font-size: 11px; margin: 0;">RideSync — Share the ride, share the joy</p>
+            </div>
+          </div>`
+        );
+      }
+    } catch (emailErr) {
+      console.error("Email notification error (reject):", emailErr.message);
+    }
 
     res.status(200).json({
       success: true,

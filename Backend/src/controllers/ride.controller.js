@@ -1,6 +1,8 @@
 
 const Ride = require("../models/Rides.model")
 const Booking = require("../models/Booking.model")
+const User = require("../models/User.model")
+const sendEmail = require("../utils/sendEmail")
 
 const findRides = async (req, res) => {
     try {
@@ -101,6 +103,46 @@ const bookRide = async (req, res) => {
             message: "Booking request sent to driver",
             data: booking
         });
+
+        // Send email notification to driver (fire-and-forget, after response)
+        try {
+            const driver = await User.findById(ride.driverId).select("fullName email");
+            const passenger = await User.findById(passengerId).select("fullName");
+
+            if (driver?.email) {
+                const passengerName = passenger?.fullName || "A passenger";
+                const route = `${ride.startLocation?.name?.split(',')[0] || 'N/A'} → ${ride.endLocation?.name?.split(',')[0] || 'N/A'}`;
+                const departure = ride.departureTime ? new Date(ride.departureTime).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A';
+                const totalEarnings = (ride.pricePerSeat || 0) * seatsRequested;
+
+                sendEmail(
+                    driver.email,
+                    "🔔 New Booking Request on RideSync!",
+                    `<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 520px; margin: 0 auto; background: #f8fafc; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0;">
+                        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); padding: 32px 28px; text-align: center;">
+                            <h1 style="color: #ffffff; font-size: 22px; margin: 0;">🔔 New Booking Request!</h1>
+                        </div>
+                        <div style="padding: 28px;">
+                            <p style="color: #334155; font-size: 15px; margin: 0 0 20px;">Hi <strong>${driver.fullName || 'Driver'}</strong>, <strong>${passengerName}</strong> wants to ride with you!</p>
+                            <div style="background: #ffffff; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr><td style="padding: 8px 0; color: #94a3b8; font-size: 12px; text-transform: uppercase; font-weight: 700;">Route</td><td style="padding: 8px 0; color: #1e293b; font-weight: 600; text-align: right;">${route}</td></tr>
+                                    <tr><td style="padding: 8px 0; color: #94a3b8; font-size: 12px; text-transform: uppercase; font-weight: 700;">Departure</td><td style="padding: 8px 0; color: #1e293b; font-weight: 600; text-align: right;">${departure}</td></tr>
+                                    <tr><td style="padding: 8px 0; color: #94a3b8; font-size: 12px; text-transform: uppercase; font-weight: 700;">Seats</td><td style="padding: 8px 0; color: #1e293b; font-weight: 600; text-align: right;">${seatsRequested}</td></tr>
+                                    <tr><td style="padding: 8px 0; color: #94a3b8; font-size: 12px; text-transform: uppercase; font-weight: 700;">Potential Earnings</td><td style="padding: 8px 0; color: #16a34a; font-weight: 700; font-size: 18px; text-align: right;">₹${totalEarnings}</td></tr>
+                                </table>
+                            </div>
+                            <p style="color: #64748b; font-size: 13px; margin: 20px 0 0; text-align: center;">Log in to accept or decline this request 🚗</p>
+                        </div>
+                        <div style="background: #f1f5f9; padding: 16px; text-align: center;">
+                            <p style="color: #94a3b8; font-size: 11px; margin: 0;">RideSync — Share the ride, share the joy</p>
+                        </div>
+                    </div>`
+                );
+            }
+        } catch (emailErr) {
+            console.error("Email notification error (new booking):", emailErr.message);
+        }
 
     } catch (error) {
         console.error("Book Ride Error:", error);
