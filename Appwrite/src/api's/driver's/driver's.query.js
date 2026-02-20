@@ -14,7 +14,7 @@ export const useGetMyRides = () => {
   return useQuery({
     queryKey: ["my-rides", user?._id],
     queryFn: getMyRides,
-    enabled: !!user?._id // Only run if we have a user
+    enabled: !!user?._id && user?.role === 'driver' // Only run if we have a user and they are a driver
   });
 };
 

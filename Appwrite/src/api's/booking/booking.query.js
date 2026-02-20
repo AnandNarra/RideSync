@@ -31,7 +31,7 @@ export const useGetBookingRequests = (rideId) => {
     return useQuery({
         queryKey: ["booking-requests", rideId, user?._id],
         queryFn: () => bookingApi.getBookingRequests(rideId),
-        enabled: !!user?._id
+        enabled: !!user?._id && user?.role === 'driver'
     });
 };
 

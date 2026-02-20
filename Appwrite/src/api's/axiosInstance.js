@@ -38,11 +38,16 @@ axiosInstance.interceptors.response.use(
                 return axiosInstance(originalRequest);
 
             } catch (error) {
-
                 removeAccessToken()
-                window.location.href = "/login";
+                if (window.location.pathname !== "/login") {
+                    window.location.href = "/login";
+                }
                 return Promise.reject(error)
             }
+        }
+
+        if (error.response?.status === 403) {
+            console.error("Permission Denied:", error.response.data.message);
         }
 
 

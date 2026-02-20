@@ -44,7 +44,7 @@ export const getMyProfile = async () => {
 export const updateUserProfile = async (payload) => {
   const { data } = await axiosInstance.patch('/api/v1/update-profile', payload, {
     headers: {
-      "Content-Type": "multipart/form-data"
+      "Content-Type": undefined
     }
   });
   return data;
