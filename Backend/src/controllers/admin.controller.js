@@ -1,6 +1,7 @@
 const Drivers = require("../models/Driver.model");
 const User = require("../models/User.model");
 const Booking = require("../models/Booking.model");
+const sendEmail = require("../utils/sendEmail");
 
 
 const getAllPendingRequest = async (req, res) => {
@@ -63,8 +64,48 @@ const updateDriverStatus = async (req, res) => {
     // Update user role based on status
     if (status === 'approved') {
       await User.findByIdAndUpdate(driver.userId._id, { role: 'driver' });
+
+      // Send Approval Email
+      const subject = "Welcome to the RideSync Driver Team! 🚗";
+      const html = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h2 style="color: #2563eb;">Congratulations, ${driver.userId.name}!</h2>
+          <p>Your driver registration request has been <strong>approved</strong>.</p>
+          <p>You can now start publishing your rides and earning with RideSync.</p>
+          <div style="margin: 20px 0; padding: 15px; background: #f0fdf4; border-left: 4px solid #22c55e;">
+            <strong>Next Steps:</strong>
+            <ul>
+              <li>Go to the App</li>
+              <li>Navigate to "Publish Ride"</li>
+              <li>Fill in your ride details</li>
+            </ul>
+          </div>
+          <p>Safe driving!</p>
+          <p>Best regards,<br>The RideSync Team</p>
+        </div>
+      `;
+      sendEmail(driver.userId.email, subject, html);
+
     } else if (status === 'rejected') {
       await User.findByIdAndUpdate(driver.userId._id, { role: 'user' });
+
+      // Send Rejection Email
+      const subject = "Update on your RideSync Driver Application";
+      const html = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h2 style="color: #dc2626;">Driver Application Status</h2>
+          <p>Hi ${driver.userId.name},</p>
+          <p>Thank you for your interest in joining RideSync as a driver.</p>
+          <p>We regret to inform you that your registration request has been <strong>rejected</strong> at this time.</p>
+          <div style="margin: 20px 0; padding: 15px; background: #fef2f2; border-left: 4px solid #ef4444;">
+            <strong>Reason for Rejection:</strong><br>
+            ${rejectedReason}
+          </div>
+          <p>You can review the reason above and apply again once the issues are addressed.</p>
+          <p>Best regards,<br>The RideSync Team</p>
+        </div>
+      `;
+      sendEmail(driver.userId.email, subject, html);
     }
 
     return res.status(200).json({
