@@ -55,6 +55,29 @@ const rideSchema = new mongoose.Schema({
     required: true
   },
 
+  vehicle: {
+    vehicleType: {
+      type: String,
+      enum: ["Car", "Bike", "SUV", "Luxury", "Other"],
+      required: true
+    },
+    vehicleModel: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    vehicleNumber: {
+      type: String,
+      required: true,
+      uppercase: true,
+      trim: true
+    },
+    vehicleImage: {
+      type: String, // Cloudinary URL
+      required: true
+    }
+  },
+
   status: {
     type: String,
     enum: ["published", "full", "filled", "cancelled", "completed"],
