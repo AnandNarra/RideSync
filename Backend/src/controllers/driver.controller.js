@@ -3,13 +3,49 @@ const mongoose = require('mongoose')
 const Ride = require('../models/Rides.model')
 const Booking = require('../models/Booking.model')
 const sendEmail = require('../utils/sendEmail')
+const uploadOnCloudinary = require('../utils/cloudinary')
 
 const publishRide = async (req, res) => {
   try {
+    const { startLocation, endLocation, route, departureTime, availableSeats, pricePerSeat, vehicle } = req.body;
+
+    // Handle nested vehicle data (parsed from JSON if sent via FormData as a string)
+    let vehicleData = vehicle;
+    if (typeof vehicle === 'string') {
+      try {
+        vehicleData = JSON.parse(vehicle);
+      } catch (e) {
+        return res.status(400).json({ message: "Invalid vehicle data format" });
+      }
+    }
+
+    // Coordinates and route also need parsing if sent via FormData
+    const parsedStartLocation = typeof startLocation === 'string' ? JSON.parse(startLocation) : startLocation;
+    const parsedEndLocation = typeof endLocation === 'string' ? JSON.parse(endLocation) : endLocation;
+    const parsedRoute = typeof route === 'string' ? JSON.parse(route) : route;
+
+    if (!req.file) {
+      return res.status(400).json({ message: "Vehicle image is required" });
+    }
+
+    const cloudinaryResponse = await uploadOnCloudinary(req.file.path);
+    if (!cloudinaryResponse) {
+      return res.status(500).json({ message: "Failed to upload image to Cloudinary" });
+    }
+
     const ride = await Ride.create({
       driverId: req.user.id,
-      ...req.body,
-      totalSeats: req.body.availableSeats
+      startLocation: parsedStartLocation,
+      endLocation: parsedEndLocation,
+      route: parsedRoute,
+      departureTime,
+      availableSeats: Number(availableSeats),
+      totalSeats: Number(availableSeats),
+      pricePerSeat: Number(pricePerSeat),
+      vehicle: {
+        ...vehicleData,
+        vehicleImage: cloudinaryResponse.secure_url
+      }
     });
 
     res.status(201).json({
@@ -19,24 +55,45 @@ const publishRide = async (req, res) => {
     });
 
   } catch (error) {
-
+    console.error("Publish Ride Error:", error);
     res.status(500).json({
-      message: "Failed to publish ride"
+      message: "Failed to publish ride",
+      error: error.message
     })
-
   }
 }
 
 const getMyRides = async (req, res) => {
   try {
-    const rides = await Ride.find({ driverId: req.user.id }).populate("driverId", "name phoneNumber email fullName")
+    const rides = await Ride.find({ driverId: req.user.id })
+      .populate("driverId", "name phoneNumber email fullName")
       .sort({ departureTime: -1 });
+
+    // Fetch bookings for each ride
+    const rideIds = rides.map(r => r._id);
+    const bookings = await Booking.find({ rideId: { $in: rideIds } })
+      .populate("passengerId", "fullName name profilePhoto phoneNumber email")
+      .sort({ createdAt: -1 });
+
+    // Group bookings by rideId
+    const bookingsByRide = {};
+    bookings.forEach(b => {
+      const key = b.rideId.toString();
+      if (!bookingsByRide[key]) bookingsByRide[key] = [];
+      bookingsByRide[key].push(b);
+    });
+
+    // Attach bookings to each ride
+    const ridesWithBookings = rides.map(ride => ({
+      ...ride.toObject(),
+      bookings: bookingsByRide[ride._id.toString()] || []
+    }));
 
     res.status(200).json({
       success: true,
-      message: "the total rides ",
-      count: rides.length,
-      data: rides
+      message: "the total rides",
+      count: ridesWithBookings.length,
+      data: ridesWithBookings
     });
   } catch (error) {
     res.status(500).json({
@@ -51,7 +108,7 @@ const getBookingRequests = async (req, res) => {
     const driverId = req.user.id;
     const { rideId } = req.query;
 
-    let query = { status: "pending" };
+    let query = { status: { $in: ["pending", "accepted"] } };
 
     if (rideId) {
       // If rideId is provided, verify it belongs to this driver

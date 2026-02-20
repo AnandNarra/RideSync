@@ -28,7 +28,7 @@ const findRides = async (req, res) => {
         }
 
         const rides = await Ride.find(query)
-            .populate("driverId", "fullName phoneNumber email name")
+            .populate("driverId", "fullName phoneNumber email name profilePhoto")
             .sort({ departureTime: 1 });
 
 
