@@ -16,8 +16,8 @@ const findRides = async (req, res) => {
         }
 
         const query = {
-            "startLocation.name": { $regex: new RegExp(`^${from}$`, "i") },
-            "endLocation.name": { $regex: new RegExp(`^${to}$`, "i") },
+            "startLocation.name": { $regex: new RegExp(from, "i") },
+            "endLocation.name": { $regex: new RegExp(to, "i") },
             status: "published",
             availableSeats: { $gt: 0 },
             departureTime: { $gte: new Date() }

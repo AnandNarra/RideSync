@@ -1,6 +1,6 @@
 import axiosInstance from "../axiosInstance";
 
-export const searchRides = async ({ from, to, seats, date }) => {
+export const searchRides = async ({ from, to, seats, date } = {}) => {
     const params = new URLSearchParams();
     if (from) params.append("from", from);
     if (to) params.append("to", to);

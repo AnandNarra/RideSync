@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchRides, useCreateBooking } from "../../api's/ride/ride.query";
+import { useSearchRides } from "../../api's/ride/ride.query";
+import { useBookRide } from "../../api's/booking/booking.query";
 import { Search, MapPin, Calendar, Clock, User, ArrowRight, ShieldCheck, Users, Check, ChevronRight, X } from 'lucide-react';
 import Map from '../../utils/Map';
 import LocationAutocomplete from '../../utils/LocationAutocomplete';
@@ -23,14 +24,14 @@ const FindRide = () => {
 
     const { data: ridesData, isLoading, refetch } = useSearchRides(
         pickup?.name && drop?.name ? {
-            pickup: pickup.name,
-            drop: drop.name,
+            from: pickup.name,
+            to: drop.name,
             date: searchParams.date,
             seats: searchParams.seats
         } : null
     );
 
-    const { mutate: createBooking, isLoading: isBooking } = useCreateBooking();
+    const { mutate: createBooking, isLoading: isBooking } = useBookRide();
 
     // Fetch routes between pickup and drop
     const fetchRoutes = async () => {
