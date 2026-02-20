@@ -5,6 +5,7 @@ const userRouter = require('./routes/auth.router.js')
 const adminRouter = require('./routes/admin.router.js')
 const driverRouter = require('./routes/driver.router.js')
 const rideRouter = require('./routes/ride.router.js');
+const chatRouter = require('./routes/chat.router.js');
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
 
@@ -46,6 +47,7 @@ app.use('/api/v1/', userRouter)
 app.use('/api/v1/', adminRouter)
 app.use('/api/v1/driver', driverRouter)
 app.use("/api/v1", rideRouter)
+app.use("/api/v1/chat", chatRouter)
 
 // Port
 const PORT = process.env.PORT || 5000;

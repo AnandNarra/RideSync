@@ -24,6 +24,7 @@ import BookingRequests from './pages/driver/BookingRequests';
 import AuthInitializer from './Components/AuthInitializer';
 import { Toaster } from 'sonner';
 import MyProfile from './pages/user/MyProfile';
+import ChatPage from './pages/user/ChatPage';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -53,10 +54,11 @@ const router = createBrowserRouter([
         children: [
           { path: "/findaRide", element: <FindRide /> },
           { path: "/publishaRide", element: <PublishRide /> },
-          { path: "/myRide", element: <MyRides /> },
+          { path: "/publishedRides", element: <MyRides /> },
           { path: "/myProfile", element: <MyProfile /> },
-          { path: "/myBookings", element: <MyBookings /> },
-          { path: "/bookingRequests", element: <BookingRequests /> },
+          { path: "/myRides", element: <MyBookings /> },
+          { path: "/requests", element: <BookingRequests /> },
+          { path: "/chat/:bookingId", element: <ChatPage /> },
         ],
       },
     ],
