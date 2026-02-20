@@ -8,6 +8,8 @@ import LocationAutocomplete from "../../utils/LocationAutocomplete";
 import useAuthStore from "@/store/authStore";
 import axiosInstance from "@/api's/axiosInstance";
 
+import { toast } from "sonner";
+
 function Home() {
   const [pickup, setPickup] = useState(null);
   const [drop, setDrop] = useState(null);
@@ -54,6 +56,14 @@ function Home() {
 
   function handleSearchRide(e) {
     e.preventDefault();
+
+    if (!pickup || !drop || !ride.date || !ride.seats) {
+      toast.warning("Incomplete search criteria", {
+        description: "Please select pickup, drop, date, and seats.",
+      });
+      return;
+    }
+
     navigate("/findaRide", {
       state: {
         pickup,

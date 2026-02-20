@@ -75,6 +75,11 @@ const MyProfile = () => {
   };
 
   const handleSaveProfile = () => {
+    if (!editData.name || !editData.fullName || !editData.email || !editData.phoneNumber) {
+      toast.warning("All profile fields are required");
+      return;
+    }
+
     const fd = new FormData();
     Object.entries(editData).forEach(([k, v]) => fd.append(k, v));
     updateProfile(fd, { onSuccess: () => setShowEditModal(false) });

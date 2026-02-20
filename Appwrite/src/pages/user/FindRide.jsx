@@ -80,6 +80,14 @@ const FindRide = () => {
 
     const handleSearch = (e) => {
         e.preventDefault();
+
+        if (!searchParams.date || !searchParams.seats) {
+            toast.warning("Please provide date and seats", {
+                description: "Both date and number of seats are required for searching rides.",
+            });
+            return;
+        }
+
         if (!pickup || !drop) {
             toast.error("Please enter both pickup and destination");
             return;

@@ -121,6 +121,14 @@ const PublishRide = () => {
 
     const handleSubmitDriverRequest = (e) => {
         e.preventDefault();
+
+        if (!licenseNumber || !aadhaarNumber || !experience || !licensePhoto || !aadhaarPhoto) {
+            toast.warning("All driver details are required", {
+                description: "Please provide your license and Aadhaar details, including photos.",
+            });
+            return;
+        }
+
         const formData = new FormData();
         formData.append("licenseNumber", licenseNumber);
         formData.append("aadhaarNumber", aadhaarNumber);
@@ -147,6 +155,14 @@ const PublishRide = () => {
             toast.error("Please select pickup, drop and route");
             return;
         }
+
+        if (!rideDetails.date || !rideDetails.time || !rideDetails.seats || !rideDetails.price || !rideDetails.vehicleModel || !rideDetails.vehicleNumber) {
+            toast.warning("Missing ride details", {
+                description: "Please fill in all vehicle and schedule details.",
+            });
+            return;
+        }
+
         if (!vehicleImage) {
             toast.error("Please upload a vehicle photo");
             return;

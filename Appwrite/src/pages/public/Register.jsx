@@ -35,6 +35,13 @@ export function Register() {
 
 
   async function handleRegister() {
+    if (!Name || !fullName || !email || !phoneNumber || !password) {
+      toast.warning("All fields are required", {
+        description: "Please fill in all the details to register your account.",
+      });
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append('name', Name);
