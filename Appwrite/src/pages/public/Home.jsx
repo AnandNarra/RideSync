@@ -59,6 +59,7 @@ function Home() {
         pickup,
         drop,
         date: ride.date,
+        time: ride.time,
         seats: ride.seats
       }
     });

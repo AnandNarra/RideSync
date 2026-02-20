@@ -5,16 +5,38 @@ import { Search, MapPin, Calendar, Clock, User, ArrowRight, ShieldCheck, Users, 
 import Map from '../../utils/Map';
 import LocationAutocomplete from '../../utils/LocationAutocomplete';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const FindRide = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [pickup, setPickup] = useState(null);
     const [drop, setDrop] = useState(null);
     const [searchParams, setSearchParams] = useState({
         date: '',
+        time: '',
         seats: 1
     });
+
+    useEffect(() => {
+        if (location.state) {
+            const { pickup: p, drop: d, date, time, seats } = location.state;
+            if (p) setPickup(p);
+            if (d) setDrop(d);
+            setSearchParams(prev => ({
+                ...prev,
+                date: date || prev.date,
+                time: time || prev.time,
+                seats: seats || prev.seats
+            }));
+        }
+    }, [location.state]);
+
+    useEffect(() => {
+        if (location.state && pickup && drop) {
+            refetch();
+        }
+    }, [pickup, drop]);
 
     const [mapRoutes, setMapRoutes] = useState([]);
     const [selectedRide, setSelectedRide] = useState(null);

@@ -4,6 +4,7 @@ const LocationAutocomplete = ({ placeholder, onChange, value = "" }) => {
   const [query, setQuery] = useState(value);
   const [results, setResults] = useState([]);
   const debounceRef = useRef(null);
+  const isSelecting = useRef(false);
 
   // Sync internal query with value prop for prefilling
   useEffect(() => {
@@ -16,7 +17,8 @@ const LocationAutocomplete = ({ placeholder, onChange, value = "" }) => {
   }, [value]);
 
   useEffect(() => {
-    if (!query) {
+    if (!query || isSelecting.current) {
+      if (isSelecting.current) isSelecting.current = false;
       setResults([]);
       return;
     }
@@ -50,6 +52,7 @@ const LocationAutocomplete = ({ placeholder, onChange, value = "" }) => {
               key={item.id}
               onClick={() => {
                 const shortName = item.place_name.split(',')[0]; // Get first part before comma
+                isSelecting.current = true;
                 onChange({
                   lat: item.center[1],
                   lng: item.center[0],
