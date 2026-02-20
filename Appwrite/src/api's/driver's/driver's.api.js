@@ -1,8 +1,11 @@
 import axiosInstance from "../axiosInstance"
 
 export const publishRide = async (payload) => {
-
-  const response = await axiosInstance.post('/api/v1/driver/rides', payload);
+  const response = await axiosInstance.post('/api/v1/driver/rides', payload, {
+    headers: {
+      'Content-Type': undefined
+    }
+  });
   return response.data;
 }
 

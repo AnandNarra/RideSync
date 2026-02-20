@@ -47,26 +47,14 @@ const Navbar = () => {
             </li>
 
             {user?.role === 'driver' ? (
-              <>
-                <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/publishaRide')}>
-                  Publish a Ride
-                </li>
-                <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/myRide')}>
-                  My Rides
-                </li>
-                <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/bookingRequests')}>
-                  Booking Requests
-                </li>
-              </>
+              <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/publishaRide')}>
+                Publish a Ride
+              </li>
             ) : (
               <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/publishaRide')}>
                 Become a Driver
               </li>
             )}
-
-            <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/myBookings')}>
-              My Bookings
-            </li>
 
             <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/myProfile')}>
               My Profile
