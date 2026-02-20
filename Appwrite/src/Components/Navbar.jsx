@@ -52,7 +52,7 @@ const Navbar = () => {
               </li>
             ) : (
               <li className="cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/publishaRide')}>
-                Become a Driver
+                Become a Rider
               </li>
             )}
 
