@@ -1,10 +1,15 @@
 const { ZodError } = require("zod");
+const { cleanupUploadedFiles, deleteFile } = require("../utils/cleanupHelper");
 
 const validate = (schema) => (req, res, next) => {
   try {
     schema.parse(req.body);
     next();
   } catch (error) {
+    // Cleanup any uploaded files on validation failure
+    if (req.file) deleteFile(req.file.path);
+    if (req.files) cleanupUploadedFiles(req);
+
     if (error instanceof ZodError) {
       return res.status(400).json({
         success: false,
@@ -15,7 +20,7 @@ const validate = (schema) => (req, res, next) => {
         })),
       });
     }
-    
+
     // Handle non-Zod errors
     return res.status(500).json({
       success: false,

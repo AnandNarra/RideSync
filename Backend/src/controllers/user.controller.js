@@ -6,6 +6,7 @@ const uploadOnCloudinary = require('../utils/cloudinary');
 const { cleanupUploadedFiles, deleteFile } = require('../utils/cleanupHelper');
 
 const { generateAccessToken, generateRefreshToken } = require('../utils/generateToken')
+const sendEmail = require('../utils/sendEmail');
 
 const register = async (req, res) => {
 
@@ -47,6 +48,28 @@ const register = async (req, res) => {
       phoneNumber,
       profilePhoto: profilePhotoUrl
     })
+
+    // Send Welcome Email
+    const subject = "Welcome to RideSync! 🚗";
+    const html = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <h2 style="color: #2563eb;">Welcome to RideSync, ${name}!</h2>
+        <p>We're thrilled to have you join our community of smart travelers.</p>
+        <p>With RideSync, you can easily find affordable rides or share your travel costs by offering seats in your car.</p>
+        <div style="margin: 20px 0; padding: 15px; background: #eff6ff; border-left: 4px solid #3b82f6;">
+          <strong>Ready to get started?</strong>
+          <ul>
+            <li>Find a ride for your next trip</li>
+            <li>Publish a ride if you're driving</li>
+            <li>Complete your profile for a better experience</li>
+          </ul>
+        </div>
+        <p>If you have any questions, feel free to reply to this email.</p>
+        <p>Happy traveling!</p>
+        <p>Best regards,<br>The RideSync Team</p>
+      </div>
+    `;
+    sendEmail(email, subject, html);
 
     return res.status(201).json({
       message: "user register successfully..."
@@ -148,6 +171,7 @@ const driverRequest = async (req, res) => {
 
     // 4. Validate files
     if (!req.files?.licensePhoto || !req.files?.aadhaarPhoto) {
+      cleanupUploadedFiles(req);
       return res.status(400).json({
         success: false,
         message: "Both license and Aadhaar photos are required",
