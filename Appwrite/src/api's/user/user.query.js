@@ -48,10 +48,12 @@ export const useLogin = () => {
 };
 
 export const useSubmitDriverRequest = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: submitDriverRequest,
 
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["my-driver-status"] });
       toast.success("Driver request submitted successfully! 🚗", {
         description: "Your request is pending admin approval",
       });
@@ -73,9 +75,7 @@ export const useGetMyDriverStatus = () => {
     queryFn: getMyDriverStatus,
     enabled: !!user?._id,
     retry: false,
-    staleTime: 0, // Always consider data stale
-    // refetchOnMount: 'always', // Always refetch when component mounts
-    // If endpoint doesn't exist (404), treat as no status
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevents refetch on every mount
     onError: (error) => {
       if (error.response?.status === 404) {
         return { data: { status: 'none' } };
@@ -88,6 +88,7 @@ export const useGetMyProfile = () => {
   return useQuery({
     queryKey: ["my-profile"],
     queryFn: getMyProfile,
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevents refetch on every mount
   });
 };
 

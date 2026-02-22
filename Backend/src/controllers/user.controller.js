@@ -251,8 +251,8 @@ const driverRequest = async (req, res) => {
       driverRequest.licenseNumber = licenseNumber;
       driverRequest.aadhaarNumber = aadhaarNumber;
       driverRequest.experience = experience;
-      driverRequest.licensePhoto = licensePhoto.url;
-      driverRequest.aadhaarPhoto = aadhaarPhoto.url;
+      driverRequest.licensePhoto = licensePhoto.secure_url;
+      driverRequest.aadhaarPhoto = aadhaarPhoto.secure_url;
       driverRequest.status = "pending";
       driverRequest.rejectedReason = null;
 
@@ -264,8 +264,8 @@ const driverRequest = async (req, res) => {
         licenseNumber,
         aadhaarNumber,
         experience,
-        licensePhoto: licensePhoto.url,
-        aadhaarPhoto: aadhaarPhoto.url,
+        licensePhoto: licensePhoto.secure_url,
+        aadhaarPhoto: aadhaarPhoto.secure_url,
         status: "pending",
       });
     }
@@ -278,6 +278,7 @@ const driverRequest = async (req, res) => {
 
   } catch (error) {
     console.error("Driver Request Error:", error);
+    cleanupUploadedFiles(req); // Ensure temp files are removed on any error
 
     // Handle MongoDB duplicate key error
     if (error.code === 11000) {

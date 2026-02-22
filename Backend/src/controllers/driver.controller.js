@@ -4,6 +4,7 @@ const Ride = require('../models/Rides.model')
 const Booking = require('../models/Booking.model')
 const sendEmail = require('../utils/sendEmail')
 const uploadOnCloudinary = require('../utils/cloudinary')
+const { deleteFile } = require('../utils/cleanupHelper')
 
 const publishRide = async (req, res) => {
   try {
@@ -15,6 +16,7 @@ const publishRide = async (req, res) => {
       try {
         vehicleData = JSON.parse(vehicle);
       } catch (e) {
+        if (req.file) deleteFile(req.file.path);
         return res.status(400).json({ message: "Invalid vehicle data format" });
       }
     }
@@ -56,6 +58,8 @@ const publishRide = async (req, res) => {
 
   } catch (error) {
     console.error("Publish Ride Error:", error);
+    // Clean up temp file if error occurred before cloudinary upload ran
+    if (req.file) deleteFile(req.file.path);
     res.status(500).json({
       message: "Failed to publish ride",
       error: error.message
@@ -67,7 +71,7 @@ const getMyRides = async (req, res) => {
   try {
     const rides = await Ride.find({ driverId: req.user.id })
       .populate("driverId", "name phoneNumber email fullName")
-      .sort({ departureTime: -1 });
+      .sort({ createdAt: -1 });
 
     // Fetch bookings for each ride
     const rideIds = rides.map(r => r._id);
