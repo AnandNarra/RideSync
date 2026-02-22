@@ -10,6 +10,7 @@ export const useBookRide = () => {
         onSuccess: (data) => {
             toast.success(data.message || "Booking request sent! 🚗");
             queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
+            queryClient.invalidateQueries({ queryKey: ["booking-requests"] });
         },
         onError: (error) => {
             toast.error(error?.response?.data?.message || "Failed to book ride");
@@ -43,6 +44,7 @@ export const useAcceptBooking = () => {
             toast.success(data.message || "Booking accepted! ✅");
             queryClient.invalidateQueries({ queryKey: ["booking-requests"] });
             queryClient.invalidateQueries({ queryKey: ["my-rides"] });
+            queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
         },
         onError: (error) => {
             toast.error(error?.response?.data?.message || "Failed to accept booking");
@@ -57,6 +59,7 @@ export const useRejectBooking = () => {
         onSuccess: (data) => {
             toast.warning(data.message || "Booking rejected ❌");
             queryClient.invalidateQueries({ queryKey: ["booking-requests"] });
+            queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
         },
         onError: (error) => {
             toast.error(error?.response?.data?.message || "Failed to reject booking");
@@ -72,6 +75,7 @@ export const useCompleteRide = () => {
             toast.success(data.message || "Ride completed! 🏁");
             queryClient.invalidateQueries({ queryKey: ["my-rides"] });
             queryClient.invalidateQueries({ queryKey: ["booking-requests"] });
+            queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
         },
         onError: (error) => {
             toast.error(error?.response?.data?.message || "Failed to complete ride");
@@ -85,7 +89,9 @@ export const useUpdateBooking = () => {
     return useMutation({
         mutationFn: bookingApi.updateBooking,
         onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ["my-bookings", user?._id] });
+            queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
+            queryClient.invalidateQueries({ queryKey: ["booking-requests"] });
+            queryClient.invalidateQueries({ queryKey: ["my-rides"] });
             toast.success(data.message || "Booking updated successfully! 🚀");
         },
         onError: (error) => {
@@ -100,7 +106,9 @@ export const useCancelBooking = () => {
     return useMutation({
         mutationFn: bookingApi.cancelBooking,
         onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ["my-bookings", user?._id] });
+            queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
+            queryClient.invalidateQueries({ queryKey: ["booking-requests"] });
+            queryClient.invalidateQueries({ queryKey: ["my-rides"] });
             toast.success(data.message || "Booking cancelled successfully! 👋");
         },
         onError: (error) => {

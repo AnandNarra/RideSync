@@ -1,9 +1,8 @@
 import useAuthStore from '@/store/authStore';
-import { useLogout, useUpdateProfile } from "@/api's/user/user.query";
+import { useLogout, useUpdateProfile, useGetMyProfile } from "@/api's/user/user.query";
 import { useGetMyBookings } from "@/api's/booking/booking.query";
 import { useGetMyRides } from "@/api's/driver's/driver's.query";
 import { useGetBookingRequests } from "@/api's/booking/booking.query";
-import { getMyProfile } from "@/api's/user/user.api";
 import { useQueryClient } from '@tanstack/react-query';
 import React from 'react';
 import {
@@ -26,10 +25,10 @@ const MyProfile = () => {
   const { data: myBookingsData } = useGetMyBookings();
   const { data: myRidesData } = useGetMyRides();
   const { data: requestsData } = useGetBookingRequests(null);
+  const { isLoading } = useGetMyProfile();
   const myBookingsCount = myBookingsData?.data?.length ?? '—';
   const myRidesCount = myRidesData?.data?.length ?? '—';
   const pendingRequestsCount = requestsData?.data?.filter(r => r.status === 'pending')?.length ?? '—';
-  const [isLoading, setIsLoading] = React.useState(!user);
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [editData, setEditData] = React.useState({
     name: user?.name || '',
@@ -49,21 +48,6 @@ const MyProfile = () => {
       });
     }
   }, [user]);
-
-  React.useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        if (!user) setIsLoading(true);
-        const data = await getMyProfile();
-        setUser(data.user);
-      } catch (error) {
-        if (!user) toast.error('Could not load profile details');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchProfile();
-  }, [setUser]);
 
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
@@ -276,7 +260,7 @@ const MyProfile = () => {
               <h3 className="text-lg font-bold mb-2">Driver Center</h3>
               <p className="text-gray-400 text-xs mb-5 leading-relaxed">Complete your profile to unlock more features.</p>
               <button
-                onClick={() => navigate('/driverRegistration')}
+
                 className="w-full py-2.5 bg-blue-600 text-white rounded-lg font-bold text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
               >
                 Get Started <ChevronRight size={12} />

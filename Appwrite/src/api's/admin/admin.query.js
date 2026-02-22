@@ -30,6 +30,8 @@ export const useUpdateDriverStatus = () => {
 
       // Invalidate and refetch driver requests
       queryClient.invalidateQueries({ queryKey: ["driver-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["my-driver-status"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
     },
 
     onError: (error) => {

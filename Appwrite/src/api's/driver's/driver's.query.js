@@ -4,8 +4,12 @@ import { getMyRides, publishRide, cancelRide, updateRide } from "./driver's.api"
 import { toast } from "sonner";
 
 export const usePublishRide = () => {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: publishRide
+    mutationFn: publishRide,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-rides"] });
+    }
   });
 };
 
@@ -42,6 +46,8 @@ export const useCancelRide = () => {
     onSuccess: () => {
       toast.success("Ride cancelled successfully");
       queryClient.invalidateQueries({ queryKey: ["my-rides"] });
+      queryClient.invalidateQueries({ queryKey: ["booking-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || "Failed to cancel ride");
