@@ -1,0 +1,12 @@
+{
+  "name": "ridesync-monorepo",
+  "private": true,
+  "scripts": {
+    "install:backend": "cd Backend && npm install",
+    "install:frontend": "cd Appwrite && npm install",
+    "build:frontend": "cd Appwrite && npm run build",
+    "start:backend": "cd Backend && npm start",
+    "render-build": "npm run install:backend",
+    "render-start": "npm run start:backend"
+  }
+}
