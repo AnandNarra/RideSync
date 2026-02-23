@@ -20,7 +20,7 @@ app.use(cookieParser());
 const allowedOrigin = [
   "http://localhost:5173",
   "http://localhost:5174",
-  "https://ride-sync-iota.vercel.app/"
+  "https://ride-sync-iota.vercel.app"
 
 
 ];
