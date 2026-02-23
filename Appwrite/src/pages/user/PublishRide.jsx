@@ -342,7 +342,7 @@ const PublishRide = () => {
                                     <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
                                         <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1-1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1" />
                                         </svg>
                                         Vehicle Information
                                     </h2>
@@ -590,7 +590,7 @@ const PublishRide = () => {
                         </div>
                     )}
                     <button
-                        onClick={() => queryClient.setQueryData(["my-driver-status"], { data: { status: 'none' } })}
+                        onClick={() => queryClient.setQueryData(["my-driver-status", user?._id], { data: { status: 'none' } })}
                         className="w-full bg-gray-900 text-white py-4 rounded-xl font-bold hover:bg-black transition-all"
                     >
                         Try Again
