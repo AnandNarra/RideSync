@@ -20,10 +20,10 @@ app.use(cookieParser());
 const allowedOrigin = [
   "http://localhost:5173",
   "http://localhost:5174",
-  "https://ride-sync-iota.vercel.app"
-
-
-];
+  "https://ride-sync-iota.vercel.app",
+  "https://ridesyncc.onrender.com", // Backend Render URL
+  process.env.FRONTEND_URL           // Optional dynamic frontend URL
+].filter(Boolean);
 
 
 // CORS options
@@ -37,6 +37,8 @@ const corsOptions = {
     }
   },
   credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 };
 
 app.use(cors(corsOptions));
