@@ -1,7 +1,7 @@
 import axios from "axios";
 import axiosInstance from "../axiosInstance";
 
-const URL = `${import.meta.env.VITE_API_BASE_URL}`;
+const URL = `${import.meta.env.VITE_API_BASE_URL}` || 'https://ridesyncc.onrender.com';
 
 export const registerUser = async (payload) => {
   const { data } = await axios.post(`${URL}/api/v1/register`, payload, {
