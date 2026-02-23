@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Footer from "../../components/Footer";
+
 
 import "leaflet/dist/leaflet.css";
 import Map from "../../utils/Map";
