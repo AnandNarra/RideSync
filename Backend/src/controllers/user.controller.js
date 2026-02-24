@@ -7,6 +7,7 @@ const { cleanupUploadedFiles, deleteFile } = require('../utils/cleanupHelper');
 
 const { generateAccessToken, generateRefreshToken } = require('../utils/generateToken')
 const sendEmail = require('../utils/sendEmail');
+const axios = require("axios");
 
 const register = async (req, res) => {
 
@@ -247,6 +248,7 @@ const driverRequest = async (req, res) => {
 
 
     // 12. Update or Create
+    let newDriver;
     if (driverRequest) {
       // Update
       driverRequest.licenseNumber = licenseNumber;
@@ -260,7 +262,7 @@ const driverRequest = async (req, res) => {
       await driverRequest.save();
     } else {
       // Create
-      await Driver.create({
+      newDriver = await Driver.create({
         userId,
         licenseNumber,
         aadhaarNumber,
@@ -269,6 +271,29 @@ const driverRequest = async (req, res) => {
         aadhaarPhoto: aadhaarPhoto.secure_url,
         status: "pending",
       });
+    }
+
+    // Trigger n8n Webhook
+    try {
+      const driverDoc = driverRequest ? driverRequest : newDriver;
+
+      await axios.post(
+        "https://narraanand.app.n8n.cloud/webhook/driver-request",
+        {
+          driverId: driverDoc._id.toString(),
+          userId: userId.toString(),
+          name: user.name,
+          email: user.email,
+          licenseNumber,
+          aadhaarNumber,
+          experience,
+          licensePhoto: licensePhoto.secure_url,
+          aadhaarPhoto: aadhaarPhoto.secure_url
+        }
+      );
+    } catch (webhookError) {
+      console.error("n8n Webhook Error:", webhookError.message);
+      // Don't fail the user request if webhook fails
     }
 
     // 13. Success response
