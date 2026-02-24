@@ -2,12 +2,21 @@ import React from 'react';
 import { useGetAdminStats } from "../../api's/admin/admin.query";
 import { Users, UserCheck, Car, XCircle, Loader2, ArrowUpRight } from "lucide-react";
 
-const StatCard = ({ title, value, description }) => (
-    <div className="group relative bg-[#1c1c1c] border border-white/5 p-8 rounded-[2rem] transition-all duration-300 hover:border-white/10">
-        <div className="relative z-10">
-            <h3 className="text-white/40 text-xs font-bold mb-2 uppercase tracking-widest">{title}</h3>
-            <p className="text-5xl font-black text-white tracking-tighter leading-none italic">{value}</p>
-            {description && <p className="text-sm text-white/20 mt-4 font-medium">{description}</p>}
+const StatCard = ({ title, value, description, icon: Icon, color }) => (
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
+        <div className="flex justify-between items-start mb-4">
+            <div className={`p-3 rounded-xl ${color.bg}`}>
+                <Icon className={`w-6 h-6 ${color.text}`} />
+            </div>
+            <span className="flex items-center text-xs font-bold text-green-500 bg-green-50 px-2 py-1 rounded-lg">
+                <ArrowUpRight className="w-3 h-3 mr-1" />
+                Live
+            </span>
+        </div>
+        <div>
+            <h3 className="text-gray-500 text-sm font-medium mb-1">{title}</h3>
+            <p className="text-3xl font-bold text-gray-900 tracking-tight">{value}</p>
+            {description && <p className="text-xs text-gray-400 mt-2">{description}</p>}
         </div>
     </div>
 );
@@ -17,10 +26,14 @@ const AdminDashboard = () => {
 
     if (isError) {
         return (
-            <div className="p-8 text-center bg-red-500/10 border border-red-500/20 rounded-3xl m-8">
-                <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                <h2 className="text-xl font-bold text-red-100">Failed to load statistics</h2>
-                <p className="text-red-400/60 mt-2">Please check your connection and try again.</p>
+            <div className="min-h-[400px] flex items-center justify-center p-8">
+                <div className="text-center max-w-sm">
+                    <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <XCircle className="w-8 h-8 text-red-500" />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-900">Failed to load statistics</h2>
+                    <p className="text-gray-500 mt-2 text-sm">Please check your connection and try again.</p>
+                </div>
             </div>
         );
     }
@@ -29,42 +42,64 @@ const AdminDashboard = () => {
 
     const cardData = [
         {
-            title: "Platform Growth",
+            title: "Total Users",
             value: stats.totalUsers || "0",
-            description: "Total community members"
+            description: "Registered community members",
+            icon: Users,
+            color: { bg: "bg-blue-50", text: "text-blue-600" }
         },
         {
-            title: "Active Partners",
+            title: "Verified Drivers",
             value: stats.totalDrivers || "0",
-            description: "Verified driver accounts"
+            description: "Active partners on platform",
+            icon: UserCheck,
+            color: { bg: "bg-green-50", text: "text-green-600" }
         },
         {
-            title: "System Volume",
+            title: "Total Bookings",
             value: stats.totalRides || "0",
-            description: "Cumulative bookings processed"
+            description: "Completed and active rides",
+            icon: Car,
+            color: { bg: "bg-purple-50", text: "text-purple-600" }
         },
         {
-            title: "Resolution Rate",
+            title: "Cancellations",
             value: stats.cancelledRides || "0",
-            description: "Rides marked as cancelled"
+            description: "Rides marked as cancelled",
+            icon: XCircle,
+            color: { bg: "bg-red-50", text: "text-red-600" }
         },
     ];
 
     return (
-        <div className="p-10 max-w-7xl mx-auto min-h-screen">
-            <div className="mb-14">
-                <h1 className="text-4xl font-black text-black tracking-tighter italic uppercase leading-none">
-                    Admin <span className="text-black/40">Dashboard</span>
-                </h1>
-                <p className="text-black/60 mt-6 max-w-xl text-lg font-medium leading-relaxed">
-                    Overview of system metrics and platform growth.
-                </p>
+        <div className="p-6 md:p-10 max-w-7xl mx-auto min-h-screen bg-gray-50/30">
+            <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900 tracking-tight"> Admin Dashboard  </h1>
+                    <p className="text-gray-500 mt-1 text-sm">Real-time metrics for your platform's health.</p>
+                </div>
+                <div className="flex gap-2">
+                    <button className="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition-all shadow-sm">
+                        Download Report
+                    </button>
+                    <button className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-all shadow-sm">
+                        Manage Users
+                    </button>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {cardData.map((card, index) => (
                     <StatCard key={index} {...card} />
                 ))}
+            </div>
+
+            <div className="mt-12 bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
+                <h2 className="text-lg font-bold text-gray-900 mb-2">Performance Insights</h2>
+                <p className="text-sm text-gray-500 mb-8">System performance across all modules is stable today.</p>
+                <div className="h-64 flex items-center justify-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100">
+                    <p className="text-gray-400 text-sm italic">Growth charts and analytics coming soon...</p>
+                </div>
             </div>
         </div>
     );
