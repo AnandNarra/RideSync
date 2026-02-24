@@ -572,29 +572,36 @@ const PublishRide = () => {
 
     if (driverStatus === 'rejected') {
         return (
-            <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
-                <div className="max-w-md w-full bg-red-50 border-2 border-red-200 p-8 rounded-[2rem] shadow-xl text-center">
-                    <div className="mx-auto w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-6">
-                        <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+            <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50/50">
+                <div className="max-w-md w-full bg-white border border-gray-100 p-8 rounded-3xl shadow-sm text-center">
+                    <div className="mx-auto w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-6">
+                        <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
                     </div>
-                    <h2 className="text-3xl font-extrabold text-gray-800 mb-4">Request Rejected</h2>
-                    <p className="text-gray-600 mb-6 leading-relaxed">
-                        Unfortunately, your driver credentials couldn't be verified at this time.
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Application Rejected</h2>
+                    <p className="text-gray-500 mb-6 text-sm">
+                        Your driver application was not approved by our verification team.
                     </p>
+
                     {statusData?.data?.rejectedReason && (
-                        <div className="bg-white border border-red-200 rounded-2xl p-5 mb-8 text-left">
-                            <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Admin Feedback</p>
-                            <p className="text-sm font-bold text-red-700 leading-relaxed italic">"{statusData.data.rejectedReason}"</p>
+                        <div className="bg-gray-50 rounded-2xl p-4 mb-8 text-left border border-gray-100">
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Reason for rejection</p>
+                            <p className="text-sm text-gray-700 leading-relaxed">{statusData.data.rejectedReason}</p>
                         </div>
                     )}
+
                     <button
                         onClick={() => queryClient.setQueryData(["my-driver-status", user?._id], { data: { status: 'none' } })}
-                        className="w-full bg-gray-900 text-white py-4 rounded-xl font-bold hover:bg-black transition-all"
+                        className="w-full bg-blue-600 text-white py-3.5 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-sm flex items-center justify-center gap-2"
                     >
-                        Try Again
+                        <span>Update Information & Re-apply</span>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                     </button>
+
+                    <p className="mt-6 text-xs text-gray-400">
+                        Need help? Contact support at <span className="text-blue-500 underline cursor-pointer">support@ridesync.com</span>
+                    </p>
                 </div>
             </div>
         );
